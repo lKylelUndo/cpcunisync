@@ -1,6 +1,6 @@
 # CPC UniSync — Cordova Public College Student Information System
 
-Web-based SIS that centralizes student, enrollment, and academic records from three simulated departmental data sources via **REST API integration** and **ETL sync**, with duplicate detection, RBAC, audit logs, and consolidated reports.
+Web-based SIS that centralizes student, enrollment, and academic records from three simulated departmental data sources via **REST API integration** and **ETL sync**, with staff self-registration + admin verification, duplicate detection, RBAC, audit logs, and consolidated reports.
 
 ```
 cpcunisync/
@@ -46,23 +46,31 @@ npm run dev          # http://localhost:3000
 
 `.env.local` already points `NEXT_PUBLIC_BACKEND_URL` at `http://127.0.0.1:8000`.
 
-## Demo accounts (password `Password1!`)
+## Accounts & access
+
+Only the **admin** account is seeded (password `Password1!`):
 
 | Email | Role |
 | --- | --- |
-| admin@cpc.edu.ph | admin |
-| registrar@cpc.edu.ph | registrar |
-| coe-head@cpc.edu.ph | department_head (COE, read-only) |
-| cit-head@cpc.edu.ph | department_head (CIT, read-only) |
-| chm-head@cpc.edu.ph | department_head (CHM, read-only) |
+| admin@cpc.edu.ph | admin (verify/reject registrations, full access) |
+
+Staff accounts (`registrar`, `department_head`) are **never seeded** — they self-register:
+
+1. Staff member signs up at `/register` with name, email, password, role (registrar or department head), and optional department.
+2. The account is created with status `pending` and cannot log in yet (login returns an "awaiting administrator verification" notice).
+3. The admin opens **Registrations** (`/admin/registrations`), reviews pending sign-ups (Pending / Verified / Rejected tabs), and clicks **Verify** or **Reject** (with an optional reason) in `/api/admin/v1/verify-user/{id}` / `reject-user/{id}`.
+4. Verified: login issues a Sanctum token immediately. Rejected: login stays blocked and shows the admin's rejection reason.
+
+Registration is limited to `registrar` and `department_head` roles — admin accounts cannot be created through `/register`.
 
 ## What's inside
 
+- **Staff registration & verification** — public sign-up (`POST /api/auth/v1/register`) + department/role options (`GET /api/registration/v1/options`); admin review list (`GET /api/admin/v1/all-registrations`) with verify/reject actions; `users.status` (`pending|verified|rejected`) gates login with clear pending/rejected (reason) messages; audits `registered`, `verified_user`, `rejected_user`.
 - **Auth/RBAC** — Sanctum personal access tokens; `role:admin,registrar` middleware on writes; department heads read-only.
 - **Students / Enrollments / Academic Records** — full CRUD with server-side validation (FormRequests → 422), search, filters, hand-rolled pagination.
 - **Integrations** — per-department ETL/REST sync runs (`POST /api/sync/v1/run`, or `php artisan sync:students`), sync history with per-row error payloads, and a REST-push endpoint (`POST /api/integration/v1/students`) with `created|updated|duplicate` outcomes.
 - **Duplicate detection** — matchers on student number, email, and name+birthdate; flagged rows become `duplicate_suspect`s; resolve via merge (moves enrollments/records onto the primary) or dismiss.
-- **Audit logs** — model observers record created/updated/deleted with old/new values, actor, and IP; auth actions logged too.
+- **Audit logs** — model observers record created/updated/deleted with old/new values, actor, and IP; auth and registration actions logged too.
 - **Reports** — enrollment stats by academic year/semester/program/department, academic summary with pass rates, and sync status.
 
 ## API conventions
@@ -71,4 +79,4 @@ npm run dev          # http://localhost:3000
 - Flat envelope on HTTP 200: `{ status: "success" | "error", message, data?, source? }`; FormRequest validation failures use Laravel's 422 envelope; unauthenticated 401 / unauthorized 403 are JSON.
 - Versioned route groups, e.g. `POST /api/students/v1/create-student` (full map: `routes/api.php`).
 
-Run the client and log in to explore: the dashboard shows the last sync, program/department breakdowns, and duplicate count; **Integrations** replays the departmental ETL and REST-push demos.
+Run the client and log in to explore: the dashboard shows the last sync, program/department breakdowns, and duplicate count; **Integrations** replays departmental ETL runs; `/register` + **Registrations** handle the staff sign-up and admin verification workflow.

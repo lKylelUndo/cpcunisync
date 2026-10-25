@@ -405,7 +405,7 @@ export function StudentProfileView({ studentId: studentIdParam }: { studentId: s
           <CardHeader>
             <CardTitle>Personal details</CardTitle>
             <CardDescription>
-              Contact information and demographic data.
+              Contact information and personal details.
             </CardDescription>
           </CardHeader>
           <CardContent>

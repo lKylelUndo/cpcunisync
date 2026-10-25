@@ -36,12 +36,50 @@ function clearAuthStorage() {
   window.localStorage.removeItem("user");
 }
 
+interface AuthErrorBody {
+  message?: unknown;
+  source?: unknown;
+  note?: unknown;
+  data?: unknown;
+}
+
+function rejectionNote(payload: {
+  note?: unknown;
+  data?: unknown;
+}): string | null {
+  if (typeof payload.note === "string" && payload.note.trim().length > 0) {
+    return payload.note.trim();
+  }
+
+  if (
+    payload.data !== null &&
+    typeof payload.data === "object" &&
+    "note" in payload.data
+  ) {
+    const nestedNote = (payload.data as { note?: unknown }).note;
+
+    if (typeof nestedNote === "string" && nestedNote.trim().length > 0) {
+      return nestedNote.trim();
+    }
+  }
+
+  return null;
+}
+
+function withRejectionNote(message: string, note: unknown): string {
+  return typeof note === "string" && note.trim().length > 0
+    ? `${message} Reason: ${note.trim()}`
+    : message;
+}
+
 function errorMessage(error: unknown): string {
   if (isAxiosError(error)) {
-    const body = error.response?.data as { message?: unknown } | undefined;
+    const body = error.response?.data as AuthErrorBody | undefined;
 
     if (typeof body?.message === "string" && body.message.length > 0) {
-      return body.message;
+      return body.source === "accountRejected"
+        ? withRejectionNote(body.message, rejectionNote(body))
+        : body.message;
     }
   }
 
@@ -127,20 +165,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await authService.login(data);
 
         if (response.status !== "success" || !response.data) {
-          toast.error(response.message || "Unable to sign in.");
+          const message = response.message || "Unable to sign in.";
+
+          toast.error(
+            response.source === "accountRejected"
+              ? withRejectionNote(message, rejectionNote(response))
+              : message,
+          );
           return false;
         }
 
-        window.localStorage.setItem("accessToken", response.data.token);
-        window.localStorage.setItem(
-          "user",
-          JSON.stringify(response.data.user),
-        );
-        setUser(response.data.user);
+        const { token, user } = response.data;
+
+        if (user.status && user.status !== "verified") {
+          toast.error(
+            "Your account is not verified yet. Contact an administrator for approval.",
+          );
+          return false;
+        }
+
+        window.localStorage.setItem("accessToken", token);
+        window.localStorage.setItem("user", JSON.stringify(user));
+        setUser(user);
         toast.success(response.message || "Signed in successfully.");
-        router.push(
-          response.data.user.role === "admin" ? "/admin" : "/",
-        );
+        router.push(user.role === "admin" ? "/admin" : "/");
 
         return true;
       } catch (error) {

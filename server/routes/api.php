@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicRecordController;
+use App\Http\Controllers\AdminRegistrationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\LookupController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SourceController;
 use App\Http\Controllers\StudentController;
@@ -29,11 +31,16 @@ Route::get('sources/{key}', [SourceController::class, 'show']);
 
 Route::prefix('auth/v1')->group(function (): void {
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('register', [AuthController::class, 'register']);
 
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
     });
+});
+
+Route::prefix('registration/v1')->group(function (): void {
+    Route::get('options', [RegistrationController::class, 'options']);
 });
 
 Route::middleware('auth:sanctum')->group(function (): void {
@@ -97,3 +104,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('sync-status', [ReportController::class, 'syncStatus']);
     });
 });
+
+Route::middleware(['auth:sanctum', 'role:admin'])
+    ->prefix('admin/v1')
+    ->group(function (): void {
+        Route::get('all-registrations', [AdminRegistrationController::class, 'allRegistrations']);
+        Route::post('verify-user/{id}', [AdminRegistrationController::class, 'verifyUser']);
+        Route::post('reject-user/{id}', [AdminRegistrationController::class, 'rejectUser']);
+    });

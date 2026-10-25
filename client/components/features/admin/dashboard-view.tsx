@@ -52,7 +52,7 @@ const QUICK_LINKS = [
   {
     href: "/admin/integrations",
     label: "Integrations",
-    description: "Run department syncs and push demo records.",
+    description: "Run department syncs and review ingestion activity.",
     icon: RefreshCwIcon,
   },
   {

@@ -25,6 +25,22 @@ final class PostAuthService
             return self::error('The provided credentials are incorrect.', 'invalidCredentials');
         }
 
+        if ($user->status === 'pending') {
+            return self::error('Your account is awaiting verification by an administrator.', 'accountPending');
+        }
+
+        if ($user->status === 'rejected') {
+            $data = $user->verification_note !== null
+                ? ['note' => $user->verification_note]
+                : [];
+
+            return self::error(
+                'Your registration was rejected by an administrator.',
+                'accountRejected',
+                $data,
+            );
+        }
+
         try {
             $deviceName = (string) $request->input('device_name', 'cpc-frontend');
             $token = $repository->createToken($user, $deviceName);

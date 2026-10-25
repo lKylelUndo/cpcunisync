@@ -11,6 +11,7 @@ export interface ApiEnvelope<TData = unknown> {
   message: string;
   data?: TData;
   source?: string;
+  note?: string | null;
 }
 
 /** Body of a FormRequest 422 validation failure. */

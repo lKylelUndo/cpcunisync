@@ -40,6 +40,8 @@ const STATUS_MAP: Record<string, { label: string; tone: StatusTone }> = {
   enrolled: { label: "Enrolled", tone: "emerald" },
   completed: { label: "Completed", tone: "indigo" },
   pending: { label: "Pending", tone: "amber" },
+  verified: { label: "Verified", tone: "emerald" },
+  rejected: { label: "Rejected", tone: "rose" },
   passed: { label: "Passed", tone: "emerald" },
   failed: { label: "Failed", tone: "rose" },
   incomplete: { label: "Incomplete", tone: "amber" },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
 import {
@@ -12,7 +13,6 @@ import {
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/constants/demo-accounts";
 import { useAuth } from "@/context/AuthContext";
 import { loginSchema, type LoginInput } from "@/services/auth.service";
 import type { ApiValidationError } from "@/services/types";
@@ -42,7 +41,6 @@ export function LoginForm() {
     register,
     handleSubmit,
     setError,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -72,11 +70,6 @@ export function LoginForm() {
         }
       }
     }
-  };
-
-  const fillDemoAccount = (email: string) => {
-    setValue("email", email, { shouldValidate: true });
-    setValue("password", DEMO_PASSWORD, { shouldValidate: true });
   };
 
   return (
@@ -174,36 +167,15 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <div className="rounded-lg border bg-muted/40 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Demo accounts
-            </p>
-            <Badge variant="secondary">Password: {DEMO_PASSWORD}</Badge>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Select an account to fill in the credentials.
-          </p>
-          <ul className="mt-3 grid gap-1.5">
-            {DEMO_ACCOUNTS.map((account) => (
-              <li
-                key={account.email}
-                className="flex items-center justify-between gap-3 text-xs"
-              >
-                <button
-                  type="button"
-                  onClick={() => fillDemoAccount(account.email)}
-                  className="font-mono text-foreground underline-offset-4 hover:underline"
-                >
-                  {account.email}
-                </button>
-                <span className="shrink-0 text-muted-foreground">
-                  {account.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <p className="text-center text-sm text-muted-foreground">
+          Need a staff account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Create account
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

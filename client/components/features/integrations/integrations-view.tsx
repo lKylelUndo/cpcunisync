@@ -1,29 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-  CloudUploadIcon,
-  LayersIcon,
-  RefreshCwIcon,
-} from "lucide-react";
+import { LayersIcon, RefreshCwIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/features/admin/AdminPageHeader";
-import { IntegrationPushDialog } from "@/components/features/integrations/IntegrationPushDialog";
 import { SyncHistoryTable } from "@/components/features/integrations/SyncHistoryTable";
 import { SyncRunCard } from "@/components/features/integrations/SyncRunCard";
 import { SyncRunDetailsDialog } from "@/components/features/integrations/SyncRunDetailsDialog";
 import { EmptyState } from "@/components/features/shared/EmptyState";
 import { Pagination } from "@/components/features/shared/Pagination";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -37,7 +25,6 @@ import { apiErrorMessage } from "@/lib/api-errors";
 import {
   lookupService,
   type DepartmentLookup,
-  type ProgramLookup,
 } from "@/services/lookup.service";
 import {
   syncService,
@@ -58,8 +45,6 @@ export function IntegrationsView() {
   });
 
   const [departments, setDepartments] = useState<DepartmentLookup[]>([]);
-  const [programs, setPrograms] = useState<ProgramLookup[]>([]);
-  const [pushOpen, setPushOpen] = useState(false);
   const [detailsRunId, setDetailsRunId] = useState<number | null>(null);
 
   const loadRuns = useCallback(async () => {
@@ -89,21 +74,10 @@ export function IntegrationsView() {
 
     const loadLookups = async () => {
       try {
-        const [departmentResponse, programResponse] = await Promise.all([
-          lookupService.getDepartments(),
-          lookupService.getPrograms(),
-        ]);
+        const response = await lookupService.getDepartments();
 
-        if (!active) {
-          return;
-        }
-
-        if (departmentResponse.status === "success" && departmentResponse.data) {
-          setDepartments(departmentResponse.data);
-        }
-
-        if (programResponse.status === "success" && programResponse.data) {
-          setPrograms(programResponse.data);
+        if (active && response.status === "success" && response.data) {
+          setDepartments(response.data);
         }
       } catch {
         // Filters fall back to the unfiltered list when lookups fail.
@@ -127,61 +101,21 @@ export function IntegrationsView() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Integrations"
-        description="Department sync runs and the REST student ingestion endpoint."
+        description="Department sync runs and student ingestion activity across education, IT, and hospitality sources."
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SyncRunCard
-          canWrite={canWrite}
-          onRunComplete={refreshRuns}
-          onViewRun={(run) => setDetailsRunId(run.id)}
-        />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>REST integration</CardTitle>
-            <CardDescription>
-              Test the endpoint departments use to push a single student. The
-              response reports whether the record was created, updated, or
-              stored as a duplicate suspect.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="font-mono">
-                POST /api/integration/v1/students
-              </Badge>
-              <Badge variant="secondary">REST</Badge>
-            </div>
-            <ul className="space-y-1.5 text-sm text-muted-foreground">
-              <li>Created records return source &quot;created&quot;.</li>
-              <li>Existing student numbers update the central record.</li>
-              <li>
-                New matches are stored as duplicate suspects with candidate
-                records for review.
-              </li>
-            </ul>
-            {canWrite ? (
-              <Button onClick={() => setPushOpen(true)}>
-                <CloudUploadIcon />
-                Push a student
-              </Button>
-            ) : (
-              <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                Read-only access. Only administrators can push integration
-                records.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <SyncRunCard
+        canWrite={canWrite}
+        onRunComplete={refreshRuns}
+        onViewRun={(run) => setDetailsRunId(run.id)}
+      />
 
       <Card className="overflow-hidden py-0">
         <div className="flex flex-col gap-3 border-b p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-semibold">Sync history</h2>
+            <h2 className="font-semibold">Sync runs</h2>
             <p className="text-sm text-muted-foreground">
-              Every ETL, REST pull, and integration push is recorded as a run.
+              Every ETL and REST sync is recorded as a run.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -306,13 +240,6 @@ export function IntegrationsView() {
           />
         )}
       </Card>
-
-      <IntegrationPushDialog
-        open={pushOpen}
-        onOpenChange={setPushOpen}
-        programs={programs}
-        onPushed={refreshRuns}
-      />
 
       <SyncRunDetailsDialog
         runId={detailsRunId}

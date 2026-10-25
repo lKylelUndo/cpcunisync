@@ -88,8 +88,9 @@ export function SyncRunCard({
       <CardHeader>
         <CardTitle>Run department sync</CardTitle>
         <CardDescription>
-          Pull students from a source department into the central registry.
-          Every run is recorded in the history below.
+          Pull students from a simulated department source into the central
+          registry. Simulated department sources: education, it, hospitality.
+          Every run is recorded below.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -144,7 +145,11 @@ export function SyncRunCard({
               ) : (
                 <PlayIcon />
               )}
-              {isRunning ? "Running sync…" : "Run sync"}
+              {isRunning
+                ? "Running sync…"
+                : method === "etl"
+                  ? "Run ETL Sync"
+                  : "Run REST Sync"}
             </Button>
           </>
         ) : (

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import {
-  ADMIN_NAV_ITEMS,
+  getAdminNavItems,
   getAdminPageTitle,
   isAdminNavItemActive,
   roleLabel,
@@ -43,6 +43,7 @@ export function AdminHeader() {
   const { user, logout } = useAuth();
   const title = getAdminPageTitle(pathname);
   const readOnly = user?.role === "department_head";
+  const navItems = getAdminNavItems(user?.role);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-8">
@@ -61,7 +62,7 @@ export function AdminHeader() {
         <DropdownMenuContent align="start" className="w-56 md:hidden">
           <DropdownMenuLabel>Navigate</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {ADMIN_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const active = isAdminNavItemActive(pathname, item.href);
 

@@ -7,6 +7,7 @@ import {
   LayoutDashboardIcon,
   RefreshCwIcon,
   ScrollTextIcon,
+  UserCheckIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -15,6 +16,7 @@ export interface AdminNavItem {
   label: string;
   icon: LucideIcon;
   description: string;
+  adminOnly?: boolean;
 }
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
@@ -29,6 +31,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Students",
     icon: UsersIcon,
     description: "Central student registry and duplicate flags.",
+  },
+  {
+    href: "/admin/registrations",
+    label: "Registrations",
+    icon: UserCheckIcon,
+    description: "Review staff self-registration requests.",
+    adminOnly: true,
   },
   {
     href: "/admin/enrollments",
@@ -46,7 +55,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/integrations",
     label: "Integrations",
     icon: RefreshCwIcon,
-    description: "Department sync runs and REST push activity.",
+    description: "Department sync runs and ingestion activity.",
   },
   {
     href: "/admin/duplicates",
@@ -67,6 +76,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     description: "Enrollment, academic, and sync summaries.",
   },
 ];
+
+export function getAdminNavItems(
+  role: string | null | undefined,
+): AdminNavItem[] {
+  return ADMIN_NAV_ITEMS.filter(
+    (item) => !item.adminOnly || role === "admin",
+  );
+}
 
 export function isAdminNavItemActive(pathname: string, href: string): boolean {
   if (href === "/admin") {
