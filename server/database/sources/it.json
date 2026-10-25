@@ -1,0 +1,146 @@
+{
+    "department": "it",
+    "records": [
+        {
+            "student_number": "IT-2025-0001",
+            "first_name": "pAoLo gAbRiEl",
+            "middle_name": "rEyes",
+            "last_name": "mEnDoZa",
+            "sex": "M",
+            "birth_date": "7/19/2002",
+            "phone": "0917 555 0001",
+            "address": "45 MacArthur Highway, Angeles City, Pampanga",
+            "program_code": " bsit ",
+            "year_level": 4
+        },
+        {
+            "student_number": "IT-2025-0002",
+            "first_name": "cHrIsTiAn",
+            "middle_name": "a.",
+            "last_name": "rEyes",
+            "sex": "M",
+            "birth_date": "2003-03-18",
+            "email": "christian.reyes@example.com",
+            "phone": "0918-222-4455",
+            "program_code": "BSIT",
+            "year_level": 2
+        },
+        {
+            "student_number": "IT-2025-0003",
+            "first_name": "aLySsA mArIe",
+            "middle_name": "d.",
+            "last_name": "gUtIeRrEz",
+            "sex": "F",
+            "birth_date": "5/6/2003",
+            "email": "alyssa.gutierrez@example.com",
+            "phone": "+63 917 321 8899",
+            "address": "91 Friendship Highway, Angeles City, Pampanga",
+            "program_code": "bsit ",
+            "year_level": 3
+        },
+        {
+            "student_number": "IT-2025-0004",
+            "first_name": "kEvIn pAuL",
+            "middle_name": "b.",
+            "last_name": "rAmOs",
+            "sex": "Male",
+            "birth_date": "2002-12-01",
+            "phone": "(0920) 555-1188",
+            "program_code": "BSIT",
+            "year_level": 4
+        },
+        {
+            "student_number": "IT-2025-0005",
+            "first_name": "nIcOlE aNnE",
+            "last_name": "tAn",
+            "sex": "F",
+            "birth_date": "1/22/2004",
+            "email": "nicole.tan@example.com",
+            "program_code": " BSIT",
+            "year_level": 1
+        },
+        {
+            "student_number": "IT-2025-0006",
+            "first_name": "bRyAn jAy",
+            "middle_name": "m.",
+            "last_name": "mErCaDo",
+            "sex": "M",
+            "birth_date": "08-07-2003",
+            "email": "bryan.mercado@example.com",
+            "phone": "0917-987-3344",
+            "address": "14 Pulung Maragul, Angeles City, Pampanga",
+            "program_code": "BSIT",
+            "year_level": 2
+        },
+        {
+            "student_number": "IT-2025-0007",
+            "first_name": "cAmIlLe rOsE",
+            "middle_name": "s.",
+            "last_name": "oNg",
+            "sex": "F",
+            "birth_date": "2004-04-11",
+            "phone": "0918 765 4433",
+            "program_code": "bsit",
+            "year_level": 1
+        },
+        {
+            "student_number": "IT-2025-0008",
+            "first_name": "jErOmE pAtRiCk",
+            "middle_name": "a.",
+            "last_name": "sAlAzAr",
+            "sex": "M",
+            "birth_date": "2001-10-25",
+            "email": "jerome.salazar@example.com",
+            "phone": "0921-444-7788",
+            "program_code": "BSIT ",
+            "year_level": 4
+        },
+        {
+            "student_number": "IT-2025-0009",
+            "first_name": "tRiShA mAc",
+            "middle_name": "l.",
+            "last_name": "bAuTiStA",
+            "sex": "F",
+            "birth_date": "2003-07-07",
+            "email": "trisha.bautista@example.com",
+            "phone": "+63 918 333 2200",
+            "address": "20 Cutcut, Angeles City, Pampanga",
+            "program_code": "BSIT",
+            "year_level": 3
+        },
+        {
+            "student_number": "IT-2025-0010",
+            "first_name": "aArOn mIgUeL",
+            "last_name": "lIm",
+            "sex": "M",
+            "birth_date": "2002-05-19",
+            "phone": "0917-101-2020",
+            "program_code": " bsit",
+            "year_level": 4
+        },
+        {
+            "student_number": "IT-2025-0011",
+            "first_name": "dApHnE jOy",
+            "middle_name": "c.",
+            "last_name": "nAvArRo",
+            "sex": "F",
+            "birth_date": "2004-02-28",
+            "email": "daphne.navarro@example.com",
+            "program_code": "BSIT",
+            "year_level": 1
+        },
+        {
+            "student_number": "IT-2025-0012",
+            "first_name": "gAbRiEl lUiS",
+            "middle_name": "p.",
+            "last_name": "dOmInGo",
+            "sex": "M",
+            "birth_date": "2003-08-30",
+            "email": "gabriel.domingo@example.com",
+            "phone": "(0917) 606-7070",
+            "address": "63 Telabastagan, San Fernando, Pampanga",
+            "program_code": "BSIT",
+            "year_level": 2
+        }
+    ]
+}

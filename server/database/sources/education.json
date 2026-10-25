@@ -1,0 +1,147 @@
+{
+    "department": "education",
+    "records": [
+        {
+            "student_number": "EDU-2025-0001",
+            "first_name": " jUan ",
+            "middle_name": "m.",
+            "last_name": "delA cRuz",
+            "sex": "M",
+            "birth_date": "2003-05-14",
+            "email": "juan.delacruz@example.com",
+            "phone": "0917-123-4567",
+            "address": "12 Mabini Street, San Fernando, Pampanga",
+            "program_code": "bsed ",
+            "year_level": 1
+        },
+        {
+            "student_number": "EDU-2025-0002",
+            "first_name": "mArIa",
+            "middle_name": "Clara",
+            "last_name": "sAnToS",
+            "sex": "F",
+            "birth_date": "2003-02-11",
+            "phone": "(0918) 987-6543",
+            "address": "123 Rizal Street, San Fernando, Pampanga",
+            "program_code": " BSED ",
+            "year_level": 4
+        },
+        {
+            "student_number": "EDU-2025-0003",
+            "first_name": "cArLoS aNdReS",
+            "middle_name": "d.",
+            "last_name": "rEYes",
+            "sex": "male",
+            "birth_date": "2002-11-02",
+            "email": "CARLOS.REYES@EXAMPLE.COM",
+            "phone": "+63 919 555 0101",
+            "address": "8 Santo Tomas Road, Angeles City, Pampanga",
+            "program_code": "BEEd",
+            "year_level": 2
+        },
+        {
+            "student_number": "EDU-2025-0004",
+            "first_name": "jOsEpH",
+            "middle_name": "l.",
+            "last_name": "mEnDoZa",
+            "sex": "M",
+            "birth_date": "08-19-2002",
+            "phone": "0920-777-8899",
+            "program_code": "BEED ",
+            "year_level": 2
+        },
+        {
+            "student_number": "EDU-2025-0005",
+            "first_name": "aNgElIcA",
+            "middle_name": "b.",
+            "last_name": "gArCiA",
+            "sex": "F",
+            "birth_date": "5/14/2003",
+            "email": "angelica.garcia@example.com",
+            "phone": "0917 222 3344",
+            "address": "24 Sto. Niño Street, Guagua, Pampanga",
+            "program_code": "bsed",
+            "year_level": 1
+        },
+        {
+            "student_number": "EDU-2025-0006",
+            "first_name": "rAfAeL",
+            "last_name": "tOrReS",
+            "sex": "Male",
+            "birth_date": "1/9/2004",
+            "email": "rafael.torres@example.com",
+            "phone": "0906-123-9087",
+            "program_code": "BSED",
+            "year_level": 1
+        },
+        {
+            "student_number": "EDU-2025-0007",
+            "first_name": "bEaTrIz",
+            "middle_name": "c.",
+            "last_name": "aQuInO",
+            "sex": "F",
+            "birth_date": "2003-09-30",
+            "program_code": "BEEd",
+            "year_level": 3
+        },
+        {
+            "student_number": "EDU-2025-0008",
+            "first_name": "eMmAnUeL",
+            "middle_name": "r.",
+            "last_name": "cAsTiLlO",
+            "sex": "M",
+            "birth_date": "05-21-2002",
+            "email": "emmanuel.castillo@example.com",
+            "phone": "(0917) 888-1122",
+            "address": "55 Malino Boulevard, Mabalacat, Pampanga",
+            "program_code": "BSED ",
+            "year_level": 2
+        },
+        {
+            "student_number": "EDU-2025-0009",
+            "first_name": "dEsIReE",
+            "middle_name": "p.",
+            "last_name": "vIlLaNuEvA",
+            "sex": "F",
+            "birth_date": "2004-01-15",
+            "email": "desiree.villanueva@example.com",
+            "phone": "+63 927 444 7788",
+            "address": "17 San Pedro Street, Porac, Pampanga",
+            "program_code": "beed",
+            "year_level": 1
+        },
+        {
+            "student_number": "EDU-2025-0010",
+            "first_name": "lIaM rAfAeL",
+            "last_name": "bAuTiStA",
+            "sex": "M",
+            "birth_date": "6/18/2004",
+            "phone": "0918-555-6677",
+            "program_code": "BSED",
+            "year_level": 1
+        },
+        {
+            "student_number": "EDU-2025-0011",
+            "first_name": "lIaM rAfAeL",
+            "last_name": "bAuTiStA",
+            "sex": "M",
+            "birth_date": "6/18/2004",
+            "phone": "0918-555-6677",
+            "program_code": "BSED",
+            "year_level": 1
+        },
+        {
+            "student_number": "EDU-2025-0012",
+            "first_name": "kAtHrYn",
+            "middle_name": "s.",
+            "last_name": "lIm",
+            "sex": "F",
+            "birth_date": "2003-12-08",
+            "email": "kathryn.lim@example.com",
+            "phone": "0917-444-2233",
+            "address": "31 Balibago Road, Angeles City, Pampanga",
+            "program_code": "BSED",
+            "year_level": 2
+        }
+    ]
+}

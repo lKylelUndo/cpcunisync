@@ -1,0 +1,141 @@
+{
+    "department": "hospitality",
+    "records": [
+        {
+            "student_number": "HM-2025-0001",
+            "first_name": "jAsMiNe",
+            "middle_name": "d.",
+            "last_name": "rEyes",
+            "sex": "F",
+            "birth_date": "9/14/2003",
+            "phone": "0917-303-4040",
+            "program_code": "BSHM",
+            "year_level": 2
+        },
+        {
+            "student_number": "HM-2025-0002",
+            "first_name": "jAsMiNe",
+            "last_name": "rEyEs",
+            "sex": "F",
+            "birth_date": "9/14/2003",
+            "phone": "0917-303-4040",
+            "program_code": "Bshm ",
+            "year_level": 2
+        },
+        {
+            "student_number": "HM-2025-0003",
+            "first_name": "aNgElO",
+            "middle_name": "m.",
+            "last_name": "sAnToS",
+            "sex": "M",
+            "birth_date": "2003-05-30",
+            "email": "angelo.santos@example.com",
+            "phone": "0918-404-5050",
+            "address": "18 Balibago, Angeles City, Pampanga",
+            "program_code": "BSHM",
+            "year_level": 3
+        },
+        {
+            "student_number": "HM-2025-0004",
+            "first_name": "bIaNcA",
+            "middle_name": "r.",
+            "last_name": "cRuZ",
+            "sex": "F",
+            "birth_date": "2004-07-12",
+            "phone": "(0917) 505-6060",
+            "program_code": "bshm",
+            "year_level": 1
+        },
+        {
+            "student_number": "HM-2025-0005",
+            "first_name": "cHrIsTiAn",
+            "middle_name": "d.",
+            "last_name": "dElA pEñA",
+            "sex": "M",
+            "birth_date": "2002-08-16",
+            "email": "christian.delapena@example.com",
+            "phone": "+63 917 707 8080",
+            "address": "5 Clark Freeport, Mabalacat, Pampanga",
+            "program_code": "BSHM",
+            "year_level": 4
+        },
+        {
+            "student_number": "HM-2025-0006",
+            "first_name": "mArIa tHeReSa",
+            "middle_name": "l.",
+            "last_name": "lOpEz",
+            "sex": "F",
+            "birth_date": "03-03-2003",
+            "email": "maria.lopez@example.com",
+            "phone": "0917-808-9090",
+            "program_code": "Bshm",
+            "year_level": 2
+        },
+        {
+            "student_number": "HM-2025-0007",
+            "first_name": "rAmOn cArLo",
+            "last_name": "bAuTiStA",
+            "sex": "M",
+            "birth_date": "6/21/2002",
+            "phone": "0918-909-1010",
+            "program_code": "BSHM ",
+            "year_level": 4
+        },
+        {
+            "student_number": "HM-2025-0008",
+            "first_name": "pAtRiCiA mAc",
+            "middle_name": "a.",
+            "last_name": "gOmEz",
+            "sex": "F",
+            "birth_date": "2004-09-09",
+            "email": "patricia.gomez@example.com",
+            "phone": "(0920) 111-2233",
+            "program_code": "bshm",
+            "year_level": 1
+        },
+        {
+            "student_number": "HM-2025-0009",
+            "first_name": "kEnNeTh rYaN",
+            "middle_name": "s.",
+            "last_name": "tAn",
+            "sex": "M",
+            "birth_date": "2002-10-18",
+            "phone": "0917-223-3344",
+            "program_code": "BSHM",
+            "year_level": 3
+        },
+        {
+            "student_number": "HM-2025-0010",
+            "first_name": "sOfIa iSaBeL",
+            "middle_name": "m.",
+            "last_name": "mErCaDo",
+            "sex": "F",
+            "birth_date": "1/27/2003",
+            "email": "sofia.mercado@example.com",
+            "program_code": "BSHM",
+            "year_level": 2
+        },
+        {
+            "student_number": "HM-2025-0011",
+            "first_name": "lOrEnZo mIgUeL",
+            "last_name": "aQuInO",
+            "sex": "M",
+            "birth_date": "2002-04-04",
+            "phone": "0918-334-4455",
+            "program_code": "bshm ",
+            "year_level": 4
+        },
+        {
+            "student_number": "HM-2025-0012",
+            "first_name": "qUeEnIe rOsE",
+            "middle_name": "c.",
+            "last_name": "nAvArRo",
+            "sex": "F",
+            "birth_date": "2004-11-23",
+            "email": "queenie.navarro@example.com",
+            "phone": "+63 927 555 6600",
+            "program_code": "BSHM",
+            "year_level": 1
+        }
+    ]
+}
