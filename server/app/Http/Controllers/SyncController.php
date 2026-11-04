@@ -24,6 +24,6 @@ class SyncController extends Controller
 
     public static function run(RunSyncRequest $request): JsonResponse
     {
-        return RunSyncService::RunSync($request);
+        return RunSyncService::RunSync($request->validated());
     }
 }

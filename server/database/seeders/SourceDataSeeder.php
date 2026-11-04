@@ -27,7 +27,7 @@ class SourceDataSeeder extends Seeder
                         'email' => 'juan.delacruz@example.com',
                         'phone' => '0917-123-4567',
                         'address' => '12 Mabini Street, San Fernando, Pampanga',
-                        'program_code' => 'bsed ',
+                        'program_code' => 'bsed-eng ',
                         'year_level' => 1,
                     ],
                     [
@@ -39,7 +39,7 @@ class SourceDataSeeder extends Seeder
                         'birth_date' => '2003-02-11',
                         'phone' => '(0918) 987-6543',
                         'address' => '123 Rizal Street, San Fernando, Pampanga',
-                        'program_code' => ' BSED ',
+                        'program_code' => ' BSED-SCI',
                         'year_level' => 4,
                     ],
                     [
@@ -76,7 +76,7 @@ class SourceDataSeeder extends Seeder
                         'email' => 'angelica.garcia@example.com',
                         'phone' => '0917 222 3344',
                         'address' => '24 Sto. Niño Street, Guagua, Pampanga',
-                        'program_code' => 'bsed',
+                        'program_code' => 'bsed-sci',
                         'year_level' => 1,
                     ],
                     [
@@ -87,7 +87,7 @@ class SourceDataSeeder extends Seeder
                         'birth_date' => '1/9/2004',
                         'email' => 'rafael.torres@example.com',
                         'phone' => '0906-123-9087',
-                        'program_code' => 'BSED',
+                        'program_code' => 'BSED-ENG',
                         'year_level' => 1,
                     ],
                     [
@@ -110,7 +110,7 @@ class SourceDataSeeder extends Seeder
                         'email' => 'emmanuel.castillo@example.com',
                         'phone' => '(0917) 888-1122',
                         'address' => '55 Malino Boulevard, Mabalacat, Pampanga',
-                        'program_code' => 'BSED ',
+                        'program_code' => 'BSED-SCI ',
                         'year_level' => 2,
                     ],
                     [
@@ -133,7 +133,7 @@ class SourceDataSeeder extends Seeder
                         'sex' => 'M',
                         'birth_date' => '6/18/2004',
                         'phone' => '0918-555-6677',
-                        'program_code' => 'BSED',
+                        'program_code' => 'BSED-ENG',
                         'year_level' => 1,
                     ],
                     [
@@ -143,7 +143,7 @@ class SourceDataSeeder extends Seeder
                         'sex' => 'M',
                         'birth_date' => '6/18/2004',
                         'phone' => '0918-555-6677',
-                        'program_code' => 'BSED',
+                        'program_code' => 'BSED-ENG',
                         'year_level' => 1,
                     ],
                     [
@@ -156,7 +156,7 @@ class SourceDataSeeder extends Seeder
                         'email' => 'kathryn.lim@example.com',
                         'phone' => '0917-444-2233',
                         'address' => '31 Balibago Road, Angeles City, Pampanga',
-                        'program_code' => 'BSED',
+                        'program_code' => 'BSED-SCI',
                         'year_level' => 2,
                     ],
                 ],

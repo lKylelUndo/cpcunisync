@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { isAxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeftIcon,
@@ -31,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
 import { apiErrorMessage, applyValidationErrors } from "@/lib/api-errors";
 import {
   authService,
@@ -57,6 +59,7 @@ const REGISTER_FIELDS: (keyof RegisterInput)[] = [
 ];
 
 export function RegisterView() {
+  const { signup } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [options, setOptions] = useState<RegistrationOptions | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
@@ -128,28 +131,15 @@ export function RegisterView() {
 
   const onSubmit = async (values: RegisterInput) => {
     try {
-      const response = await authService.register({
-        ...values,
-        department_id:
-          values.role === "department_head"
-            ? (values.department_id ?? null)
-            : null,
-      });
-
-      if (response.status === "success") {
-        toast.success(response.message || "Registration submitted.");
-        setSubmitted(true);
-        return;
-      }
-
-      if (response.source === "emailExists") {
-        toast.error("Email already registered.");
-        return;
-      }
-
-      toast.error(response.message || "Unable to submit registration.");
+      await signup(values);
+      setSubmitted(true);
     } catch (error) {
-      if (!applyValidationErrors(error, setError, REGISTER_FIELDS)) {
+      // Plain errors from AuthProvider.signup (emailExists, non-success
+      // envelope) were already toasted there — only surface axios failures.
+      if (
+        !applyValidationErrors(error, setError, REGISTER_FIELDS) &&
+        isAxiosError(error)
+      ) {
         toast.error(apiErrorMessage(error));
       }
     }

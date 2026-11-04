@@ -12,7 +12,7 @@ cpcunisync/
 
 | Code | Department | Programs |
 | --- | --- | --- |
-| COE | College of Education | BSEd (Bachelor of Secondary Education), BEEd (Bachelor of Elementary Education) |
+| COE | College of Education | BSEd English (BSEd major in English), BSEd Science (BSEd major in Science), BEEd (Bachelor of Elementary Education) |
 | CIT | College of Information Technology | BSIT (Bachelor of Science in Information Technology) |
 | CHM | College of Hospitality Management | BSHM (Bachelor of Science in Hospitality Management) |
 
@@ -48,13 +48,17 @@ npm run dev          # http://localhost:3000
 
 ## Accounts & access
 
-Only the **admin** account is seeded (password `Password1!`):
+Demo accounts are all seeded (password `Password1!`) — one department head per college:
 
 | Email | Role |
 | --- | --- |
 | admin@cpc.edu.ph | admin (verify/reject registrations, full access) |
+| registrar@cpc.edu.ph | registrar |
+| coe-head@cpc.edu.ph | department head — College of Education |
+| cit-head@cpc.edu.ph | department head — College of Information Technology |
+| chm-head@cpc.edu.ph | department head — College of Hospitality Management |
 
-Staff accounts (`registrar`, `department_head`) are **never seeded** — they self-register:
+Additional staff accounts (`registrar`, `department_head`) can self-register:
 
 1. Staff member signs up at `/register` with name, email, password, role (registrar or department head), and optional department.
 2. The account is created with status `pending` and cannot log in yet (login returns an "awaiting administrator verification" notice).
@@ -63,15 +67,50 @@ Staff accounts (`registrar`, `department_head`) are **never seeded** — they se
 
 Registration is limited to `registrar` and `department_head` roles — admin accounts cannot be created through `/register`.
 
-## What's inside
+## Features
 
-- **Staff registration & verification** — public sign-up (`POST /api/auth/v1/register`) + department/role options (`GET /api/registration/v1/options`); admin review list (`GET /api/admin/v1/all-registrations`) with verify/reject actions; `users.status` (`pending|verified|rejected`) gates login with clear pending/rejected (reason) messages; audits `registered`, `verified_user`, `rejected_user`.
-- **Auth/RBAC** — Sanctum personal access tokens; `role:admin,registrar` middleware on writes; department heads read-only.
-- **Students / Enrollments / Academic Records** — full CRUD with server-side validation (FormRequests → 422), search, filters, hand-rolled pagination.
-- **Integrations** — per-department ETL/REST sync runs (`POST /api/sync/v1/run`, or `php artisan sync:students`), sync history with per-row error payloads, and a REST-push endpoint (`POST /api/integration/v1/students`) with `created|updated|duplicate` outcomes.
-- **Duplicate detection** — matchers on student number, email, and name+birthdate; flagged rows become `duplicate_suspect`s; resolve via merge (moves enrollments/records onto the primary) or dismiss.
-- **Audit logs** — model observers record created/updated/deleted with old/new values, actor, and IP; auth and registration actions logged too.
-- **Reports** — enrollment stats by academic year/semester/program/department, academic summary with pass rates, and sync status.
+### Staff registration & admin verification
+- Self-service staff sign-up for `registrar` / `department_head` only — admin accounts can never be created from `/register`; role/department options are fetched live via `GET /api/registration/v1/options`.
+- Sign-ups start `pending` and are blocked from login with an "awaiting administrator verification" notice.
+- Admins review sign-ups in **Registrations** (Pending / Verified / Rejected tabs, status + search filters) and verify or reject with an optional reason — the reason is shown back to the user at login.
+- Audits `registered`, `verified_user`, `rejected_user`.
+
+### Auth & RBAC
+- Sanctum personal access tokens; the SPA hydrates the session via `auth/me`, injects the bearer token through axios, and auto-logs-out on 401.
+- `role:admin,registrar` middleware guards every write route (403 otherwise); department heads are strictly read-only.
+- The UI mirrors the matrix: write buttons are role-gated (`canWrite`), the Registrations page is admin-only and hidden from other users' navigation.
+
+### Students / Enrollments / Academic Records
+- Full CRUD with server-side validation (FormRequests → 422) and Zod-validated clients, with inline field errors on forms.
+- Search (student number / email / name parts) and filters (department, program, year level, status, integrity) with hand-rolled pagination (page/per_page, max 50).
+- Student profile view combines enrollment history with all academic records.
+
+### Departmental sources & ETL sync
+- Dirty simulated datasets per department, served publicly at `GET /api/sources/{key}` (mixed-case names, multiple date formats, messy phones, lowercase program codes, deliberate duplicates).
+- ETL run via `POST /api/sync/v1/run` or `php artisan sync:students --department=education|it|hospitality --method=etl|rest`: normalizes names, emails, phones (`+63`/`09xx` → `0…`), parses multi-format dates, and maps program codes to central IDs.
+- Skip-if-identical upsert: existing students update only when the source differs, and empty source fields never overwrite richer central data; malformed rows are recorded in `sync_errors` (failed), never counted as duplicates.
+- Sync history with counters (extracted / loaded / updated / skipped / duplicates / failed), filters (department / status / method), and drill-in details that expose per-row error payloads.
+
+### Integration push (REST ingest)
+- `POST /api/integration/v1/students` records a sync run per push and answers `created` / `updated` / `duplicate` (HTTP 200 with envelope `{status:"error", source:"duplicate"}` containing the suspect plus ranked candidates) / `failed` (unresolvable program).
+
+### Duplicate detection & resolution
+- Ordered matchers — student number → email → name + birthdate (case-insensitive, date-normalized); suspects are flagged via `students.integrity_status` with a self-referencing `duplicate_of_id`.
+- Grouped suspect list showing the match reason; **merge** moves enrollments/academic records onto the primary inside a transaction (rows that already exist for the primary's term/subject stay attached; audits `merged_duplicate`), **dismiss** resets the suspect to clean (audits `dismiss_duplicate`).
+
+### Audit logs
+- Model observers log student / enrollment / academic-record creates, updates, and deletes with old vs. new values, actor, and IP address; auth, registration, and duplicate-resolution actions are logged explicitly (passwords are never recorded).
+- Queryable list with `action` / `user_id` / `model_type` filters and a detail dialog showing the JSON diff.
+
+### Reports & dashboard
+- Enrollment stats: per-academic-year/semester totals with program & department breakdowns and a gender split.
+- Academic summary: passed / failed / incomplete / ongoing counts, pass-rate %, and per-program and per-year-level grade averages.
+- Sync status: run totals by status, per-department last-run and error summary, and a 7-day recent-error count.
+- Dashboard: write-gated stat cards (totals, active share, duplicate suspects, program count), department bars, gender bars, status chips, last-sync + sync-health tiles, and quick links.
+
+### Health & conventions
+- `GET /api/health` public liveness check.
+- Thin controllers → per-operation services → repositories; flat `{ status, message, data?, source? }` envelope on HTTP 200 (see *API conventions* below).
 
 ## API conventions
 

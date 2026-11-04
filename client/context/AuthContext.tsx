@@ -17,14 +17,17 @@ import {
   authService,
   type AuthUser,
   type LoginInput,
+  type RegisterInput,
 } from "@/services/auth.service";
 
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (data: LoginInput) => Promise<boolean>;
-  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  setUser: (user: AuthUser | null) => void;
+  login: (data: LoginInput) => Promise<void>;
+  signup: (data: RegisterInput) => Promise<void>;
+  logout: () => Promise<void>;
   isAdmin: boolean;
   canWrite: boolean;
 }
@@ -94,7 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    const hydrate = async () => {
+    const initializeAuth = async () => {
+      // Token semantics are project-specific: only hydrate when a bearer
+      // token exists (alumnai relies on cookie sessions instead).
       const token = window.localStorage.getItem("accessToken");
 
       if (!token) {
@@ -126,23 +131,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (response.status === "success" && response.data) {
+          // Update the cached user with the latest server data.
           setUser(response.data);
           window.localStorage.setItem("user", JSON.stringify(response.data));
-        } else {
-          clearAuthStorage();
-          setUser(null);
         }
       } catch (error) {
+        console.error("Session verification failed", error);
+
         if (!active) {
           return;
         }
 
+        // Only clear the session on a definitive auth failure (401/403).
+        // Network/offline errors keep the stored user, matching alumnai.
         const status = isAxiosError(error) ? error.response?.status : undefined;
 
         if (status === 401 || status === 403) {
           clearAuthStorage();
-          setUser(null);
-        } else if (!storedUser) {
           setUser(null);
         }
       } finally {
@@ -152,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    void hydrate();
+    void initializeAuth();
 
     return () => {
       active = false;
@@ -161,43 +166,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (data: LoginInput) => {
+      let response: Awaited<ReturnType<typeof authService.login>>;
+
       try {
-        const response = await authService.login(data);
-
-        if (response.status !== "success" || !response.data) {
-          const message = response.message || "Unable to sign in.";
-
-          toast.error(
-            response.source === "accountRejected"
-              ? withRejectionNote(message, rejectionNote(response))
-              : message,
-          );
-          return false;
-        }
-
-        const { token, user } = response.data;
-
-        if (user.status && user.status !== "verified") {
-          toast.error(
-            "Your account is not verified yet. Contact an administrator for approval.",
-          );
-          return false;
-        }
-
-        window.localStorage.setItem("accessToken", token);
-        window.localStorage.setItem("user", JSON.stringify(user));
-        setUser(user);
-        toast.success(response.message || "Signed in successfully.");
-        router.push(user.role === "admin" ? "/admin" : "/");
-
-        return true;
+        response = await authService.login(data);
       } catch (error) {
         toast.error(errorMessage(error));
         throw error;
       }
+
+      if (response.status !== "success" || !response.data) {
+        const message = response.message || "Unable to sign in.";
+
+        toast.error(
+          response.source === "accountRejected"
+            ? withRejectionNote(message, rejectionNote(response))
+            : message,
+        );
+
+        throw new Error(message);
+      }
+
+      const { token, user } = response.data;
+
+      if (user.status && user.status !== "verified") {
+        toast.error(
+          "Your account is not verified yet. Contact an administrator for approval.",
+        );
+
+        throw new Error("Your account is not verified yet.");
+      }
+
+      window.localStorage.setItem("accessToken", token);
+      window.localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+      toast.success(response.message || "Signed in successfully.");
+
+      // Deliberate deviation from the alumnai reference: that project uses
+      // cookie sessions and needs a full document navigation, while this app
+      // persists bearer tokens in localStorage, so a client-side push works.
+      router.push(user.role === "admin" ? "/admin" : "/");
     },
     [router],
   );
+
+  const signup = useCallback(async (data: RegisterInput) => {
+    const normalized: RegisterInput = {
+      ...data,
+      department_id:
+        data.role === "department_head" ? (data.department_id ?? null) : null,
+    };
+
+    // Axios errors (including 422 validation bodies) propagate raw so their
+    // callers can map field-level errors.
+    const response = await authService.register(normalized);
+
+    if (response.status === "success") {
+      toast.success(response.message || "Registration submitted.");
+      return;
+    }
+
+    if (response.source === "emailExists") {
+      toast.error("Email already registered.");
+      throw new Error("emailExists");
+    }
+
+    toast.error(response.message || "Unable to submit registration.");
+    throw new Error(response.message || "Unable to submit registration.");
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -223,13 +259,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isLoading,
-      login,
-      logout,
       isAuthenticated: user !== null,
+      setUser,
+      login,
+      signup,
+      logout,
       isAdmin: user?.role === "admin",
       canWrite: user?.role === "admin" || user?.role === "registrar",
     }),
-    [user, isLoading, login, logout],
+    [user, isLoading, login, signup, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

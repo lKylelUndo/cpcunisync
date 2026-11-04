@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Http\Services\Sync\RunSyncService;
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
 
 /** Runs the student ETL synchronisation from the console, without an HTTP server. */
 class SyncStudents extends Command
@@ -32,12 +31,10 @@ class SyncStudents extends Command
             return self::FAILURE;
         }
 
-        $request = Request::create('/api/sync/v1/run', 'POST', [
+        $response = RunSyncService::RunSync([
             'department_code' => $department,
             'method' => $method,
         ]);
-
-        $response = RunSyncService::RunSync($request);
         $payload = $response->getData(true);
 
         if (($payload['status'] ?? 'error') !== 'success') {

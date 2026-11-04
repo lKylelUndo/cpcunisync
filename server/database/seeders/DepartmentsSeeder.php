@@ -6,7 +6,7 @@ use App\Models\Department;
 use App\Models\Program;
 use Illuminate\Database\Seeder;
 
-/** Seeds the three colleges and their four academic programs. */
+/** Seeds the three colleges and their five academic programs. */
 class DepartmentsSeeder extends Seeder
 {
     public function run(): void
@@ -22,7 +22,8 @@ class DepartmentsSeeder extends Seeder
         }
 
         $programs = [
-            ['code' => 'BSEd', 'name' => 'Bachelor of Secondary Education', 'department' => 'COE'],
+            ['code' => 'BSED-ENG', 'name' => 'Bachelor of Secondary Education major in English', 'department' => 'COE'],
+            ['code' => 'BSED-SCI', 'name' => 'Bachelor of Secondary Education major in Science', 'department' => 'COE'],
             ['code' => 'BEEd', 'name' => 'Bachelor of Elementary Education', 'department' => 'COE'],
             ['code' => 'BSIT', 'name' => 'Bachelor of Science in Information Technology', 'department' => 'CIT'],
             ['code' => 'BSHM', 'name' => 'Bachelor of Science in Hospitality Management', 'department' => 'CHM'],
