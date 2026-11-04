@@ -41,6 +41,13 @@ final class PostAuthService
             );
         }
 
+        if ($user->status === 'suspended') {
+            return self::error(
+                'Your account has been suspended. Contact an administrator.',
+                'accountSuspended',
+            );
+        }
+
         try {
             $deviceName = (string) $request->input('device_name', 'cpc-frontend');
             $token = $repository->createToken($user, $deviceName);

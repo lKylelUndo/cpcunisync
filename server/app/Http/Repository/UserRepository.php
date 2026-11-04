@@ -87,4 +87,14 @@ class UserRepository
             $token->delete();
         }
     }
+
+    public function revokeTokens(User $user): void
+    {
+        $user->tokens()->delete();
+    }
+
+    public function delete(User $user): void
+    {
+        $user->delete();
+    }
 }

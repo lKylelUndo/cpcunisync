@@ -72,8 +72,9 @@ Registration is limited to `registrar` and `department_head` roles — admin acc
 ### Staff registration & admin verification
 - Self-service staff sign-up for `registrar` / `department_head` only — admin accounts can never be created from `/register`; role/department options are fetched live via `GET /api/registration/v1/options`.
 - Sign-ups start `pending` and are blocked from login with an "awaiting administrator verification" notice.
-- Admins review sign-ups in **Registrations** (Pending / Verified / Rejected tabs, status + search filters) and verify or reject with an optional reason — the reason is shown back to the user at login.
-- Audits `registered`, `verified_user`, `rejected_user`.
+- Admins review sign-ups in **Registrations** (Pending / Verified / Rejected / Suspended tabs, status + search filters) and verify or reject with an optional reason — the reason is shown back to the user at login.
+- Verified staff accounts can be managed from the same page: **suspend** (revokes sessions and blocks login until reinstated — amber badge + Suspended tab), **reinstate**, or permanently **delete**. Administrator accounts are protected from all three.
+- Audits `registered`, `verified_user`, `rejected_user`, `suspended_user`, `reinstated_user`, `deleted_user`.
 
 ### Auth & RBAC
 - Sanctum personal access tokens; the SPA hydrates the session via `auth/me`, injects the bearer token through axios, and auto-logs-out on 401.

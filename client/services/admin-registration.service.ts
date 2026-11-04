@@ -5,7 +5,11 @@ import type {
   PaginatedData,
 } from "@/services/types";
 
-export type AdminRegistrationStatus = "pending" | "verified" | "rejected";
+export type AdminRegistrationStatus =
+  | "pending"
+  | "verified"
+  | "rejected"
+  | "suspended";
 export type AdminRegistrationRole =
   | "admin"
   | "registrar"
@@ -73,6 +77,33 @@ export const adminRegistrationService = {
       await axiosInstance.post<ApiEnvelope<AdminRegistrationActionData>>(
         `/api/admin/v1/reject-user/${id}`,
         { note: note?.trim() ? note.trim() : null },
+      )
+    ).data,
+
+  suspendUser: async (
+    id: number,
+  ): Promise<ApiEnvelope<AdminRegistrationActionData>> =>
+    (
+      await axiosInstance.post<ApiEnvelope<AdminRegistrationActionData>>(
+        `/api/admin/v1/suspend-user/${id}`,
+      )
+    ).data,
+
+  reinstateUser: async (
+    id: number,
+  ): Promise<ApiEnvelope<AdminRegistrationActionData>> =>
+    (
+      await axiosInstance.post<ApiEnvelope<AdminRegistrationActionData>>(
+        `/api/admin/v1/reinstate-user/${id}`,
+      )
+    ).data,
+
+  deleteUser: async (
+    id: number,
+  ): Promise<ApiEnvelope<AdminRegistrationActionData>> =>
+    (
+      await axiosInstance.post<ApiEnvelope<AdminRegistrationActionData>>(
+        `/api/admin/v1/delete-user/${id}`,
       )
     ).data,
 };

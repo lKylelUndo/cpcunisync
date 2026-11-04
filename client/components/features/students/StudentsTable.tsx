@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   EyeIcon,
+  MoreHorizontalIcon,
   PencilIcon,
   Trash2Icon,
   UsersIcon,
@@ -11,6 +12,12 @@ import {
 import { EmptyState } from "@/components/features/shared/EmptyState";
 import { StatusBadge } from "@/components/features/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -87,38 +94,42 @@ export function StudentsTable({
                 {student.enrollments_count ?? 0}
               </TableCell>
               <TableCell>
-                <div className="flex items-center justify-end gap-1">
-                  <Button asChild variant="ghost" size="icon-sm">
-                    <Link
-                      href={`/admin/students/${student.id}`}
-                      aria-label={`View ${student.full_name}`}
-                    >
-                      <EyeIcon />
-                    </Link>
-                  </Button>
-                  {canWrite ? (
-                    <>
+                <div className="flex justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        aria-label={`Edit ${student.full_name}`}
-                        onClick={() => onEdit(student)}
+                        aria-label={`Open actions for ${student.full_name}`}
                       >
-                        <PencilIcon />
+                        <MoreHorizontalIcon />
                       </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive hover:text-destructive"
-                        aria-label={`Delete ${student.full_name}`}
-                        onClick={() => onDelete(student)}
-                      >
-                        <Trash2Icon />
-                      </Button>
-                    </>
-                  ) : null}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/students/${student.id}`}>
+                          <EyeIcon />
+                          View
+                        </Link>
+                      </DropdownMenuItem>
+                      {canWrite ? (
+                        <>
+                          <DropdownMenuItem onSelect={() => onEdit(student)}>
+                            <PencilIcon />
+                            Update
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onSelect={() => onDelete(student)}
+                          >
+                            <Trash2Icon />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </TableCell>
             </TableRow>

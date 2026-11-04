@@ -39,6 +39,10 @@ final class VerifyUserService
                 return self::error('This account has already been verified.', 'alreadyVerified');
             }
 
+            if ($user->status === 'suspended') {
+                return self::error('Suspended accounts must be reinstated before they can be verified.', 'accountSuspended');
+            }
+
             $oldStatus = $user->status;
             $verified = $repository->updateStatus($user, [
                 'status' => 'verified',

@@ -19,7 +19,7 @@ final class GetAllRegistrationsService
         $perPage = min(50, max(1, (int) $request->input('per_page', 15)));
         $status = (string) $request->input('status', 'pending');
 
-        if (! in_array($status, ['pending', 'verified', 'rejected'], true)) {
+        if (! in_array($status, ['pending', 'verified', 'rejected', 'suspended'], true)) {
             $status = 'pending';
         }
 
