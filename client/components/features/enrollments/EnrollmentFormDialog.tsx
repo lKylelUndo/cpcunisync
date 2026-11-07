@@ -95,6 +95,8 @@ export function EnrollmentFormDialog({
     const payload: EnrollmentInput = {
       ...values,
       enrolled_at: values.enrolled_at || null,
+      // The student never changes when editing an existing enrollment.
+      ...(enrollment ? { student_id: enrollment.student_id } : {}),
     };
 
     try {
@@ -142,7 +144,7 @@ export function EnrollmentFormDialog({
           </DialogHeader>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {!studentIsFixed ? (
+            {!studentIsFixed && !isEditing ? (
               <div className="space-y-1.5 sm:col-span-2">
                 <Label>Student</Label>
                 <Controller
@@ -161,6 +163,16 @@ export function EnrollmentFormDialog({
                     {errors.student_id.message}
                   </p>
                 ) : null}
+              </div>
+            ) : null}
+
+            {isEditing && enrollment?.student ? (
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Student</Label>
+                <p className="text-sm text-foreground">
+                  {enrollment.student.student_number} ·{" "}
+                  {enrollment.student.full_name}
+                </p>
               </div>
             ) : null}
 

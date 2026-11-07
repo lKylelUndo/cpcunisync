@@ -158,6 +158,8 @@ export function AcademicRecordFormDialog({
       enrollment_id: values.enrollment_id || null,
       grade: values.grade === undefined ? null : values.grade,
       remarks: values.remarks || null,
+      // The student never changes when editing an existing record.
+      ...(record ? { student_id: record.student_id } : {}),
     };
 
     try {
@@ -206,7 +208,7 @@ export function AcademicRecordFormDialog({
           </DialogHeader>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {!studentIsFixed ? (
+            {!studentIsFixed && !isEditing ? (
               <div className="space-y-1.5 sm:col-span-2">
                 <Label>Student</Label>
                 <Controller
@@ -228,6 +230,15 @@ export function AcademicRecordFormDialog({
                     {errors.student_id.message}
                   </p>
                 ) : null}
+              </div>
+            ) : null}
+
+            {isEditing && record?.student ? (
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Student</Label>
+                <p className="text-sm text-foreground">
+                  {record.student.student_number} · {record.student.full_name}
+                </p>
               </div>
             ) : null}
 
