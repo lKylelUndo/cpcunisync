@@ -1,47 +1,23 @@
-<laravel-boost-guidelines>
 # Laravel Application
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Laravel 13 REST API with a clean architecture: thin controllers → one-file-per-operation
+static services (`app/Http/Services/<Domain>/<Action>Service.php`) → repositories
+(`app/Http/Repository`), returning a flat JSON envelope on HTTP 200.
 
-## Prerequisites
+## Environment
 
-Verify that PHP and Composer are available:
+- PHP 8.5 + MySQL via XAMPP (`C:\xampp`), Composer 2.x. MySQL runs on `127.0.0.1:3306`
+  (root, empty password) — start it with `C:\xampp\mysql_start.bat` if it is not listening.
+- Serve locally: `php artisan serve --host=127.0.0.1 --port=8000` (from this directory).
+- Reset data: `php artisan migrate:fresh --seed`, then replay the departmental ETL with
+  `php artisan sync:students`.
 
-```sh
-php -v
-composer -V
-```
+## Conventions
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+- Versioned route groups live in `routes/api/*.php` (aggregated by `routes/api.php`);
+  the `/api` prefix comes from `bootstrap/app.php`.
+- Validation via FormRequests (`app/Http/Requests/**`) → 422; business failures use the
+  flat error envelope (`{status: "error", message, source?}`) on HTTP 200.
+- Exception rendering is centralized in `bootstrap/app.php` (401/403/404/500 as JSON).
+- For direct database checks, use
+  `C:\xampp\mysql\bin\mysql.exe -u root cpcunisync -e "..."` instead of tinker quoting.
