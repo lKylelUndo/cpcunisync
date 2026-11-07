@@ -3,8 +3,8 @@
 namespace App\Http\Services\Student;
 
 use App\Http\Repository\StudentRepository;
-use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\StudentResource;
+use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -27,6 +27,13 @@ final class GetAllStudentService
             'year_level',
             'integrity_status',
         ]);
+
+        $user = $request->user();
+
+        if ($user !== null && $user->role === 'department_head') {
+            // Server-side scope always wins over a client-supplied department filter.
+            $filters['department_id'] = $user->department_id ?? -1;
+        }
 
         try {
             $result = (new StudentRepository)->search($filters, $page, $perPage);

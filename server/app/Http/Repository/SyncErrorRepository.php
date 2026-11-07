@@ -15,8 +15,17 @@ class SyncErrorRepository
         return SyncError::query()->create($attributes);
     }
 
-    public function countSince(\DateTimeInterface $since): int
+    public function countSince(\DateTimeInterface $since, ?int $departmentId = null): int
     {
-        return SyncError::query()->where('created_at', '>=', $since)->count();
+        return SyncError::query()
+            ->where('created_at', '>=', $since)
+            ->when(
+                $departmentId !== null,
+                fn ($query) => $query->whereHas(
+                    'syncRun',
+                    fn ($query) => $query->where('department_id', $departmentId),
+                ),
+            )
+            ->count();
     }
 }

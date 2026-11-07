@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { isAxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,6 +63,11 @@ export function RegisterView() {
   const [submitted, setSubmitted] = useState(false);
   const [options, setOptions] = useState<RegistrationOptions | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
+  // Cache Components keeps this page alive via <Activity> when navigating
+  // away, so a successful submission would re-show the stale success card on
+  // the next visit. `shouldReset` gates the reset to successful submits only,
+  // so navigating away mid-draft preserves the form.
+  const shouldReset = useRef(false);
 
   const {
     register,
@@ -71,6 +76,7 @@ export function RegisterView() {
     setError,
     setValue,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema) as Resolver<RegisterInput>,
@@ -85,6 +91,18 @@ export function RegisterView() {
   });
 
   const role = watch("role");
+
+  // When <Activity> hides this page, drop the stale success card and the
+  // submitted form values so the next visit starts fresh.
+  useLayoutEffect(() => {
+    return () => {
+      if (shouldReset.current) {
+        shouldReset.current = false;
+        setSubmitted(false);
+        reset();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -132,6 +150,7 @@ export function RegisterView() {
   const onSubmit = async (values: RegisterInput) => {
     try {
       await signup(values);
+      shouldReset.current = true;
       setSubmitted(true);
     } catch (error) {
       // Plain errors from AuthProvider.signup (emailExists, non-success

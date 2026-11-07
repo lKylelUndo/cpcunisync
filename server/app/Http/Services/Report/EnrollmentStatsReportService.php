@@ -16,7 +16,12 @@ final class EnrollmentStatsReportService
     public static function EnrollmentStatsReport(Request $request): JsonResponse
     {
         try {
-            $enrollments = (new ReportRepository)->enrollmentsWithStudentContext();
+            $user = $request->user();
+            $departmentId = $user !== null && $user->role === 'department_head'
+                ? ($user->department_id ?? -1)
+                : null;
+
+            $enrollments = (new ReportRepository)->enrollmentsWithStudentContext($departmentId);
 
             $byTerm = $enrollments
                 ->groupBy(fn ($enrollment) => $enrollment->academic_year.'|'.$enrollment->semester)

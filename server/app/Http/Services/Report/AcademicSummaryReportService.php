@@ -16,7 +16,12 @@ final class AcademicSummaryReportService
     public static function AcademicSummaryReport(Request $request): JsonResponse
     {
         try {
-            $records = (new ReportRepository)->academicRecordsWithStudentContext();
+            $user = $request->user();
+            $departmentId = $user !== null && $user->role === 'department_head'
+                ? ($user->department_id ?? -1)
+                : null;
+
+            $records = (new ReportRepository)->academicRecordsWithStudentContext($departmentId);
 
             $recorded = $records->count();
             $passed = $records->where('remarks', 'passed')->count();

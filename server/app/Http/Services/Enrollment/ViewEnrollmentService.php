@@ -3,8 +3,8 @@
 namespace App\Http\Services\Enrollment;
 
 use App\Http\Repository\EnrollmentRepository;
-use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\EnrollmentResource;
+use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -18,17 +18,25 @@ final class ViewEnrollmentService
     {
         try {
             $enrollment = (new EnrollmentRepository)->findDetailed($id);
-
-            if ($enrollment === null) {
-                return self::error('Enrollment not found.', 'notFound');
-            }
-
-            return self::success(
-                'Enrollment retrieved successfully.',
-                (new EnrollmentResource($enrollment))->resolve(),
-            );
         } catch (Throwable) {
             return self::error('Unable to retrieve the enrollment.');
         }
+
+        if ($enrollment === null) {
+            return self::error('Enrollment not found.', 'notFound');
+        }
+
+        $user = $request->user();
+
+        if ($user !== null
+            && $user->role === 'department_head'
+            && (int) $enrollment->student?->department_id !== (int) $user->department_id) {
+            abort(403, 'This action is unauthorized.');
+        }
+
+        return self::success(
+            'Enrollment retrieved successfully.',
+            (new EnrollmentResource($enrollment))->resolve(),
+        );
     }
 }

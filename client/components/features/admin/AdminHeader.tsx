@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 
 import {
-  getAdminNavItems,
-  getAdminPageTitle,
-  isAdminNavItemActive,
+  getNavItems,
+  getWorkspacePageTitle,
+  isWorkspaceNavItemActive,
   roleLabel,
 } from "@/components/features/admin/admin-navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -41,9 +41,9 @@ function initials(name: string): string {
 export function AdminHeader() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const title = getAdminPageTitle(pathname);
+  const title = getWorkspacePageTitle(pathname);
   const readOnly = user?.role === "department_head";
-  const navItems = getAdminNavItems(user?.role);
+  const navItems = getNavItems(user);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-8">
@@ -64,7 +64,7 @@ export function AdminHeader() {
           <DropdownMenuSeparator />
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = isAdminNavItemActive(pathname, item.href);
+            const active = isWorkspaceNavItemActive(pathname, item.href);
 
             return (
               <DropdownMenuItem key={item.href} asChild>

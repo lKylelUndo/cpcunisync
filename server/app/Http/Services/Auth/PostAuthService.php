@@ -67,16 +67,23 @@ final class PostAuthService
     }
 
     /**
-     * @return array{id: int, name: string, email: string, role: string, department_id: int|null}
+     * @return array{id: int, name: string, email: string, role: string, department_id: int|null, department: array{id: int, code: string, name: string}|null}
      */
     private static function userPayload(User $user): array
     {
+        $user->loadMissing('department');
+
         return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
             'department_id' => $user->department_id,
+            'department' => $user->department !== null ? [
+                'id' => $user->department->id,
+                'code' => $user->department->code,
+                'name' => $user->department->name,
+            ] : null,
         ];
     }
 }

@@ -30,6 +30,12 @@ interface StudentsFiltersProps {
   integrityStatus?: IntegrityStatus;
   departments: DepartmentLookup[];
   programs: ProgramLookup[];
+  /** Department heads are locked to their own department. */
+  lockedDepartment?: {
+    id: number;
+    code: string;
+    name: string;
+  } | null;
   onSearchChange: (value: string) => void;
   onDepartmentChange: (value?: number) => void;
   onProgramChange: (value?: number) => void;
@@ -48,6 +54,7 @@ export function StudentsFilters({
   integrityStatus,
   departments,
   programs,
+  lockedDepartment,
   onSearchChange,
   onDepartmentChange,
   onProgramChange,
@@ -82,17 +89,22 @@ export function StudentsFilters({
             onValueChange={(value) =>
               onDepartmentChange(value === ALL ? undefined : Number(value))
             }
+            disabled={Boolean(lockedDepartment)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="All departments" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All departments</SelectItem>
-              {departments.map((department) => (
-                <SelectItem key={department.id} value={String(department.id)}>
-                  {department.code} · {department.name}
-                </SelectItem>
-              ))}
+              {lockedDepartment ? null : (
+                <SelectItem value={ALL}>All departments</SelectItem>
+              )}
+              {(lockedDepartment ? [lockedDepartment] : departments).map(
+                (department) => (
+                  <SelectItem key={department.id} value={String(department.id)}>
+                    {department.code} · {department.name}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         </div>

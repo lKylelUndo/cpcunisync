@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { toast } from "sonner";
 
+import { workspacePath } from "@/lib/workspace";
 import {
   authService,
   type AuthUser,
@@ -205,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Deliberate deviation from the alumnai reference: that project uses
       // cookie sessions and needs a full document navigation, while this app
       // persists bearer tokens in localStorage, so a client-side push works.
-      router.push(user.role === "admin" ? "/admin" : "/");
+      router.push(workspacePath(user));
     },
     [router],
   );

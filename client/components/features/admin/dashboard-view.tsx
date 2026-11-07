@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { getNavItems } from "@/components/features/admin/admin-navigation";
 import { AdminPageHeader } from "@/components/features/admin/AdminPageHeader";
 import { StatsCard } from "@/components/features/admin/StatsCard";
 import { BarList } from "@/components/features/shared/BarList";
@@ -29,8 +30,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 import { apiErrorMessage } from "@/lib/api-errors";
 import { formatDateTimeValue, humanize } from "@/lib/format";
+import { workspacePath } from "@/lib/workspace";
 import {
   dashboardService,
   type DashboardData,
@@ -38,37 +41,37 @@ import {
 
 const QUICK_LINKS = [
   {
-    href: "/admin/students",
+    path: "/students",
     label: "Student registry",
     description: "Search, edit, and inspect student records.",
     icon: UsersIcon,
   },
   {
-    href: "/admin/enrollments",
+    path: "/enrollments",
     label: "Enrollments",
     description: "Manage term enrollment records.",
     icon: ClipboardListIcon,
   },
   {
-    href: "/admin/integrations",
+    path: "/integrations",
     label: "Integrations",
     description: "Run department syncs and review ingestion activity.",
     icon: RefreshCwIcon,
   },
   {
-    href: "/admin/duplicates",
+    path: "/duplicates",
     label: "Duplicate queue",
     description: "Resolve suspected duplicate students.",
     icon: CopyIcon,
   },
   {
-    href: "/admin/academic-records",
+    path: "/academic-records",
     label: "Academic records",
     description: "Review subject grades and remarks.",
     icon: BookOpenIcon,
   },
   {
-    href: "/admin/reports",
+    path: "/reports",
     label: "Reports",
     description: "Enrollment, academic, and sync summaries.",
     icon: BarChart3Icon,
@@ -76,6 +79,13 @@ const QUICK_LINKS = [
 ];
 
 export function DashboardView() {
+  const { user } = useAuth();
+  const visibleNavPaths = new Set(
+    getNavItems(user).map((item) => item.path),
+  );
+  const quickLinks = QUICK_LINKS.filter((link) =>
+    visibleNavPaths.has(link.path),
+  );
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -298,7 +308,7 @@ export function DashboardView() {
                       </div>
                     </dl>
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/admin/integrations">
+                      <Link href={workspacePath(user, "/integrations")}>
                         View sync history
                         <ArrowRightIcon />
                       </Link>
@@ -311,7 +321,7 @@ export function DashboardView() {
                     description="Run an ETL or REST sync from the Integrations page to populate this panel."
                     action={
                       <Button asChild size="sm" variant="outline">
-                        <Link href="/admin/integrations">
+                        <Link href={workspacePath(user, "/integrations")}>
                           Open integrations
                           <ArrowRightIcon />
                         </Link>
@@ -356,13 +366,14 @@ export function DashboardView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {QUICK_LINKS.map((link) => {
+                {quickLinks.map((link) => {
                   const Icon = link.icon;
+                  const href = workspacePath(user, link.path);
 
                   return (
                     <Link
-                      key={link.href}
-                      href={link.href}
+                      key={href}
+                      href={href}
                       className="group flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-accent"
                     >
                       <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground group-hover:bg-background">

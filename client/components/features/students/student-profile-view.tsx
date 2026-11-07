@@ -59,6 +59,7 @@ import {
   formatGrade,
   semesterLabel,
 } from "@/lib/format";
+import { workspacePath } from "@/lib/workspace";
 import {
   academicRecordService,
   type AcademicRecord,
@@ -107,7 +108,7 @@ function SectionSkeleton() {
 
 export function StudentProfileView({ studentId: studentIdParam }: { studentId: string }) {
   const router = useRouter();
-  const { canWrite } = useAuth();
+  const { user, canWrite } = useAuth();
   const studentId = Number(studentIdParam);
 
   const [student, setStudent] = useState<Student | null>(null);
@@ -198,7 +199,7 @@ export function StudentProfileView({ studentId: studentIdParam }: { studentId: s
 
       if (response.status === "success") {
         toast.success(response.message);
-        router.push("/admin/students");
+        router.push(workspacePath(user, "/students"));
       } else {
         toast.error(response.message);
       }
@@ -285,7 +286,7 @@ export function StudentProfileView({ studentId: studentIdParam }: { studentId: s
     return (
       <div className="space-y-6">
         <Button asChild variant="ghost" size="sm" className="-ml-2">
-          <Link href="/admin/students">
+          <Link href={workspacePath(user, "/students")}>
             <ArrowLeftIcon />
             Back to students
           </Link>
@@ -329,7 +330,7 @@ export function StudentProfileView({ studentId: studentIdParam }: { studentId: s
   return (
     <div className="space-y-6">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link href="/admin/students">
+        <Link href={workspacePath(user, "/students")}>
           <ArrowLeftIcon />
           Back to students
         </Link>
@@ -390,7 +391,7 @@ export function StudentProfileView({ studentId: studentIdParam }: { studentId: s
                   : "This record matched another student during integrity checks."}
               </p>
               <Link
-                href="/admin/duplicates"
+                href={workspacePath(user, "/duplicates")}
                 className="inline-block font-medium text-amber-900 underline underline-offset-4"
               >
                 Review duplicates

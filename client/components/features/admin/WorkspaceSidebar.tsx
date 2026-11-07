@@ -5,16 +5,17 @@ import { usePathname } from "next/navigation";
 import { GraduationCapIcon } from "lucide-react";
 
 import {
-  getAdminNavItems,
-  isAdminNavItemActive,
+  getNavItems,
+  isWorkspaceNavItemActive,
 } from "@/components/features/admin/admin-navigation";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { workspaceLabel } from "@/lib/workspace";
 
-export function AdminSidebar() {
+export function WorkspaceSidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const navItems = getAdminNavItems(user?.role);
+  const navItems = getNavItems(user);
 
   return (
     <aside className="sticky top-0 hidden h-svh w-16 shrink-0 flex-col border-r bg-sidebar md:flex lg:w-64">
@@ -25,14 +26,14 @@ export function AdminSidebar() {
         <div className="hidden min-w-0 lg:block">
           <p className="truncate text-sm font-semibold">CPC UniSync</p>
           <p className="truncate text-[11px] text-muted-foreground">
-            Admin workspace
+            {workspaceLabel(user)}
           </p>
         </div>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         {navItems.map((item) => {
-          const active = isAdminNavItemActive(pathname, item.href);
+          const active = isWorkspaceNavItemActive(pathname, item.href);
           const Icon = item.icon;
 
           return (

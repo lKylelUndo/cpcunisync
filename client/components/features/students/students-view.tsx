@@ -40,13 +40,19 @@ import {
 import type { PaginatedData } from "@/services/types";
 
 export function StudentsView() {
-  const { canWrite } = useAuth();
+  const { user, canWrite } = useAuth();
+  const lockedDepartment =
+    user?.role === "department_head" && user.department
+      ? user.department
+      : null;
+  const lockedDepartmentId = lockedDepartment?.id;
   const [students, setStudents] = useState<PaginatedData<Student> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<StudentFilters>({
+  const [filters, setFilters] = useState<StudentFilters>(() => ({
     page: 1,
     per_page: 10,
-  });
+    ...(lockedDepartmentId ? { department_id: lockedDepartmentId } : {}),
+  }));
   const [search, setSearch] = useState("");
   const [departments, setDepartments] = useState<DepartmentLookup[]>([]);
   const [programs, setPrograms] = useState<ProgramLookup[]>([]);
@@ -129,12 +135,17 @@ export function StudentsView() {
 
   const resetFilters = () => {
     setSearch("");
-    setFilters({ page: 1, per_page: filters.per_page ?? 10 });
+    setFilters({
+      page: 1,
+      per_page: filters.per_page ?? 10,
+      ...(lockedDepartmentId ? { department_id: lockedDepartmentId } : {}),
+    });
   };
 
-  const filteredPrograms = filters.department_id
+  const scopedDepartmentId = lockedDepartmentId ?? filters.department_id;
+  const filteredPrograms = scopedDepartmentId
     ? programs.filter(
-        (program) => program.department_id === filters.department_id,
+        (program) => program.department_id === scopedDepartmentId,
       )
     : programs;
 
@@ -189,22 +200,27 @@ export function StudentsView() {
 
       <StudentsFilters
         search={search}
-        departmentId={filters.department_id}
+        departmentId={lockedDepartmentId ?? filters.department_id}
         programId={filters.program_id}
         status={filters.status}
         yearLevel={filters.year_level}
         integrityStatus={filters.integrity_status}
         departments={departments}
         programs={filteredPrograms}
+        lockedDepartment={lockedDepartment}
         onSearchChange={setSearch}
-        onDepartmentChange={(departmentId) =>
+        onDepartmentChange={(departmentId) => {
+          if (lockedDepartment) {
+            return;
+          }
+
           setFilters((current) => ({
             ...current,
             department_id: departmentId,
             program_id: undefined,
             page: 1,
-          }))
-        }
+          }));
+        }}
         onProgramChange={(programId) =>
           setFilters((current) => ({
             ...current,

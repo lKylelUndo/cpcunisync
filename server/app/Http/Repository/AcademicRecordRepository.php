@@ -21,6 +21,13 @@ class AcademicRecordRepository
             $query->where('student_id', (int) $filters['student_id']);
         }
 
+        if (! empty($filters['department_id'])) {
+            $query->whereHas(
+                'student',
+                fn ($query) => $query->where('department_id', (int) $filters['department_id']),
+            );
+        }
+
         foreach (['academic_year', 'semester', 'remarks'] as $filter) {
             if (! empty($filters[$filter])) {
                 $query->where($filter, (string) $filters[$filter]);

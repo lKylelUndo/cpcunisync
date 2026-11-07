@@ -16,10 +16,15 @@ final class ViewDashboardService
     public static function ViewDashboard(Request $request): JsonResponse
     {
         try {
+            $user = $request->user();
+            $departmentId = $user !== null && $user->role === 'department_head'
+                ? ($user->department_id ?? -1)
+                : null;
+
             $repository = new DashboardRepository;
-            $students = $repository->allStudents();
-            $runs = $repository->allSyncRuns();
-            $latestRun = $repository->latestSyncRun();
+            $students = $repository->allStudents($departmentId);
+            $runs = $repository->allSyncRuns($departmentId);
+            $latestRun = $repository->latestSyncRun($departmentId);
 
             $statuses = $students->groupBy('status')->map->count();
             $genders = $students->groupBy('sex')->map->count();
@@ -75,7 +80,7 @@ final class ViewDashboardService
                     'graduated' => (int) ($statuses['graduated'] ?? 0),
                     'dropped' => (int) ($statuses['dropped'] ?? 0),
                 ],
-                'active_enrollments' => $repository->countActiveEnrollments(),
+                'active_enrollments' => $repository->countActiveEnrollments($departmentId),
                 'gender' => [
                     'male' => (int) ($genders['male'] ?? 0),
                     'female' => (int) ($genders['female'] ?? 0),

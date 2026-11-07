@@ -11,98 +11,147 @@ import {
   UsersIcon,
 } from "lucide-react";
 
-export interface AdminNavItem {
-  href: string;
+import { workspacePath, type WorkspaceUser } from "@/lib/workspace";
+
+export interface WorkspaceNavItem {
+  /** Workspace-relative path, e.g. "/students" or "" for the workspace root. */
+  path: string;
   label: string;
   icon: LucideIcon;
   description: string;
+  /** Visible to administrators only. */
   adminOnly?: boolean;
+  /** Visible to central staff only (administrators and registrars). */
+  centralOnly?: boolean;
 }
 
-export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
+export interface WorkspaceNavLink extends WorkspaceNavItem {
+  href: string;
+}
+
+export const WORKSPACE_NAV_ITEMS: WorkspaceNavItem[] = [
   {
-    href: "/admin",
+    path: "",
     label: "Dashboard",
     icon: LayoutDashboardIcon,
     description: "Institution-wide totals and sync health.",
   },
   {
-    href: "/admin/students",
+    path: "/students",
     label: "Students",
     icon: UsersIcon,
     description: "Central student registry and duplicate flags.",
   },
   {
-    href: "/admin/registrations",
+    path: "/registrations",
     label: "Registrations",
     icon: UserCheckIcon,
     description: "Review staff self-registration requests.",
     adminOnly: true,
   },
   {
-    href: "/admin/enrollments",
+    path: "/enrollments",
     label: "Enrollments",
     icon: ClipboardListIcon,
     description: "Term enrollment records across departments.",
   },
   {
-    href: "/admin/academic-records",
+    path: "/academic-records",
     label: "Academic Records",
     icon: BookOpenIcon,
     description: "Subject grades and remarks per student.",
   },
   {
-    href: "/admin/integrations",
+    path: "/integrations",
     label: "Integrations",
     icon: RefreshCwIcon,
     description: "Department sync runs and ingestion activity.",
+    centralOnly: true,
   },
   {
-    href: "/admin/duplicates",
+    path: "/duplicates",
     label: "Duplicates",
     icon: CopyIcon,
     description: "Review, dismiss, or merge suspected duplicates.",
+    centralOnly: true,
   },
   {
-    href: "/admin/audit-logs",
+    path: "/audit-logs",
     label: "Audit Logs",
     icon: ScrollTextIcon,
     description: "Trace every write made through the API.",
+    centralOnly: true,
   },
   {
-    href: "/admin/reports",
+    path: "/reports",
     label: "Reports",
     icon: BarChart3Icon,
     description: "Enrollment, academic, and sync summaries.",
   },
 ];
 
-export function getAdminNavItems(
-  role: string | null | undefined,
-): AdminNavItem[] {
-  return ADMIN_NAV_ITEMS.filter(
-    (item) => !item.adminOnly || role === "admin",
-  );
+export function getNavItems(
+  user: WorkspaceUser | null | undefined,
+): WorkspaceNavLink[] {
+  const role = user?.role ?? null;
+
+  return WORKSPACE_NAV_ITEMS.filter((item) => {
+    if (item.adminOnly && role !== "admin") {
+      return false;
+    }
+
+    if (
+      item.centralOnly &&
+      role !== "admin" &&
+      role !== "registrar"
+    ) {
+      return false;
+    }
+
+    return true;
+  }).map((item) => ({ ...item, href: workspacePath(user, item.path) }));
 }
 
-export function isAdminNavItemActive(pathname: string, href: string): boolean {
-  if (href === "/admin") {
-    return pathname === "/admin";
+/** Drops the dynamic workspace segment from a pathname. */
+function workspaceRelativePath(pathname: string): string {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (segments.length <= 1) {
+    return "";
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return `/${segments.slice(1).join("/")}`;
 }
 
-export function getAdminPageTitle(pathname: string): string {
-  if (pathname.startsWith("/admin/students/")) {
+export function isWorkspaceNavItemActive(pathname: string, href: string): boolean {
+  const current = workspaceRelativePath(pathname);
+  const target = workspaceRelativePath(href);
+
+  if (target === "") {
+    return current === "";
+  }
+
+  return current === target || current.startsWith(`${target}/`);
+}
+
+export function getWorkspacePageTitle(pathname: string): string {
+  const current = workspaceRelativePath(pathname);
+
+  if (current.startsWith("/students/")) {
     return "Student Profile";
   }
 
-  const match = [...ADMIN_NAV_ITEMS]
-    .sort((left, right) => right.href.length - left.href.length)
-    .find((item) => isAdminNavItemActive(pathname, item.href));
+  const match = [...WORKSPACE_NAV_ITEMS]
+    .sort((left, right) => right.path.length - left.path.length)
+    .find((item) => {
+      if (item.path === "") {
+        return current === "";
+      }
 
-  return match?.label ?? "Admin";
+      return current === item.path || current.startsWith(`${item.path}/`);
+    });
+
+  return match?.label ?? "Workspace";
 }
 
 export function roleLabel(role: string | null | undefined): string {

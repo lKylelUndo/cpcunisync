@@ -3,8 +3,8 @@
 namespace App\Http\Services\AcademicRecord;
 
 use App\Http\Repository\AcademicRecordRepository;
-use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\AcademicRecordResource;
+use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -20,6 +20,13 @@ final class GetAllAcademicRecordService
         $perPage = min(50, max(1, (int) $request->input('per_page', 15)));
 
         $filters = $request->only(['student_id', 'academic_year', 'semester', 'remarks', 'q']);
+
+        $user = $request->user();
+
+        if ($user !== null && $user->role === 'department_head') {
+            // Server-side scope always wins over a client-supplied department filter.
+            $filters['department_id'] = $user->department_id ?? -1;
+        }
 
         try {
             $result = (new AcademicRecordRepository)->search($filters, $page, $perPage);

@@ -38,6 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { apiErrorMessage } from "@/lib/api-errors";
 import { formatDateValue } from "@/lib/format";
+import { workspacePath } from "@/lib/workspace";
 import {
   studentService,
   type DuplicateGroup,
@@ -63,6 +64,8 @@ function StudentMiniCard({
   student: Student;
   role: "primary" | "duplicate";
 }) {
+  const { user } = useAuth();
+
   return (
     <div
       className={
@@ -78,7 +81,7 @@ function StudentMiniCard({
         <StatusBadge status={student.status} />
       </div>
       <Link
-        href={`/admin/students/${student.id}`}
+        href={workspacePath(user, `/students/${student.id}`)}
         className="font-medium hover:underline"
       >
         {student.full_name}
@@ -107,7 +110,7 @@ function StudentMiniCard({
         </div>
       </dl>
       <Button asChild variant="outline" size="sm" className="mt-3">
-        <Link href={`/admin/students/${student.id}`}>
+        <Link href={workspacePath(user, `/students/${student.id}`)}>
           Open student record
         </Link>
       </Button>

@@ -34,6 +34,11 @@ final class ViewAuthService
                 'email' => $fresh->email,
                 'role' => $fresh->role,
                 'department_id' => $fresh->department_id,
+                'department' => $fresh->department !== null ? [
+                    'id' => $fresh->department->id,
+                    'code' => $fresh->department->code,
+                    'name' => $fresh->department->name,
+                ] : null,
             ]);
         } catch (Throwable) {
             return self::error('Unable to retrieve the authenticated user.', 'authFailed');

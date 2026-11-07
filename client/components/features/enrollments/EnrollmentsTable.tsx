@@ -5,6 +5,8 @@ import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
 
 import { StatusBadge } from "@/components/features/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { workspacePath } from "@/lib/workspace";
 import {
   Table,
   TableBody,
@@ -29,6 +31,8 @@ export function EnrollmentsTable({
   onEdit,
   onDelete,
 }: EnrollmentsTableProps) {
+  const { user } = useAuth();
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -48,7 +52,10 @@ export function EnrollmentsTable({
             <TableRow key={enrollment.id}>
               <TableCell>
                 <Link
-                  href={`/admin/students/${enrollment.student_id}`}
+                      href={workspacePath(
+                        user,
+                        `/students/${enrollment.student_id}`,
+                      )}
                   className="font-medium hover:underline"
                 >
                   {enrollment.student?.full_name ??
@@ -83,7 +90,10 @@ export function EnrollmentsTable({
                 <div className="flex justify-end gap-1">
                   <Button asChild variant="ghost" size="icon-sm">
                     <Link
-                      href={`/admin/students/${enrollment.student_id}`}
+                  href={workspacePath(
+                    user,
+                    `/students/${enrollment.student_id}`,
+                  )}
                       aria-label="View student"
                     >
                       <EyeIcon />

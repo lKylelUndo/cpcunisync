@@ -13,5 +13,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->group(function (): void {
-    Route::get('audit-logs/v1/all-logs', [AuditLogController::class, 'allLogs']);
+    Route::get('audit-logs/v1/all-logs', [AuditLogController::class, 'allLogs'])
+        ->middleware('role:admin,registrar');
 });

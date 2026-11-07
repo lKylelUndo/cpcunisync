@@ -3,8 +3,8 @@
 namespace App\Http\Services\Enrollment;
 
 use App\Http\Repository\EnrollmentRepository;
-use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\EnrollmentResource;
+use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -20,6 +20,13 @@ final class GetAllEnrollmentService
         $perPage = min(50, max(1, (int) $request->input('per_page', 15)));
 
         $filters = $request->only(['student_id', 'academic_year', 'semester', 'status']);
+
+        $user = $request->user();
+
+        if ($user !== null && $user->role === 'department_head') {
+            // Server-side scope always wins over a client-supplied department filter.
+            $filters['department_id'] = $user->department_id ?? -1;
+        }
 
         try {
             $result = (new EnrollmentRepository)->search($filters, $page, $perPage);

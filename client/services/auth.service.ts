@@ -59,6 +59,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   department_id: number | null;
+  department?: { id: number; code: string; name: string } | null;
   status?: "pending" | "verified" | "rejected";
 }
 

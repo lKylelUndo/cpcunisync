@@ -18,8 +18,17 @@ final class SyncStatusReportService
     public static function SyncStatusReport(Request $request): JsonResponse
     {
         try {
-            $runs = (new ReportRepository)->syncRunsWithDepartmentAndErrorCount();
+            $user = $request->user();
+            $departmentId = $user !== null && $user->role === 'department_head'
+                ? ($user->department_id ?? -1)
+                : null;
+
+            $runs = (new ReportRepository)->syncRunsWithDepartmentAndErrorCount($departmentId);
             $departments = (new DepartmentRepository)->all();
+
+            if ($departmentId !== null) {
+                $departments = $departments->where('id', $departmentId)->values();
+            }
 
             $byDepartment = $departments
                 ->map(function ($department) use ($runs): array {
@@ -48,7 +57,7 @@ final class SyncStatusReportService
                     'failed' => $runs->where('status', 'failed')->count(),
                 ],
                 'by_department' => $byDepartment,
-                'recent_errors_count' => (new SyncErrorRepository)->countSince(now()->subDays(7)),
+                'recent_errors_count' => (new SyncErrorRepository)->countSince(now()->subDays(7), $departmentId),
             ]);
         } catch (Throwable) {
             return self::error('Unable to generate the synchronisation status report.');

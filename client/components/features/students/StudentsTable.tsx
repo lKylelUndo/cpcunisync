@@ -12,6 +12,8 @@ import {
 import { EmptyState } from "@/components/features/shared/EmptyState";
 import { StatusBadge } from "@/components/features/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { workspacePath } from "@/lib/workspace";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +43,8 @@ export function StudentsTable({
   onEdit,
   onDelete,
 }: StudentsTableProps) {
+  const { user } = useAuth();
+
   return (
     <Table>
       <TableHeader>
@@ -108,7 +112,9 @@ export function StudentsTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link href={`/admin/students/${student.id}`}>
+                        <Link
+                          href={workspacePath(user, `/students/${student.id}`)}
+                        >
                           <EyeIcon />
                           View
                         </Link>
