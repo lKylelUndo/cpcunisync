@@ -7,24 +7,19 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-/** Seeds the demo admin, registrar and department head accounts. */
+/** Seeds the demo admin, registrar, department heads and one pending sign-up. Idempotent — re-running keeps existing accounts and only adds what is missing. */
 class UsersSeeder extends Seeder
 {
     public function run(): void
     {
-        User::create([
-            'name' => 'Adrian Reyes',
-            'email' => 'admin@cpc.edu.ph',
-            'password' => Hash::make('Password1!'),
-            'role' => 'admin',
-        ]);
-
-        User::create([
-            'name' => 'Mariza Lopez',
-            'email' => 'registrar@cpc.edu.ph',
-            'password' => Hash::make('Password1!'),
-            'role' => 'registrar',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@cpc.edu.ph'],
+            ['name' => 'Adrian Reyes', 'password' => Hash::make('Password1!'), 'role' => 'admin', 'status' => 'verified'],
+        );
+        User::firstOrCreate(
+            ['email' => 'registrar@cpc.edu.ph'],
+            ['name' => 'Mariza Lopez', 'password' => Hash::make('Password1!'), 'role' => 'registrar', 'status' => 'verified'],
+        );
 
         $heads = [
             ['name' => 'Edwin Villamor', 'email' => 'coe-head@cpc.edu.ph', 'department' => 'COE'],
@@ -37,13 +32,32 @@ class UsersSeeder extends Seeder
                 ->where('code', $head['department'])
                 ->firstOrFail();
 
-            User::create([
-                'name' => $head['name'],
-                'email' => $head['email'],
+            User::firstOrCreate(
+                ['email' => $head['email']],
+                [
+                    'name' => $head['name'],
+                    'password' => Hash::make('Password1!'),
+                    'role' => 'department_head',
+                    'department_id' => $department->id,
+                    'status' => 'verified',
+                ],
+            );
+        }
+
+        // One pending department-head sign-up so the Registrations page has an approval to demo.
+        $department = Department::query()
+            ->where('code', 'CIT')
+            ->firstOrFail();
+
+        User::firstOrCreate(
+            ['email' => 'pending-head@cpc.edu.ph'],
+            [
+                'name' => 'Leah Navarro',
                 'password' => Hash::make('Password1!'),
                 'role' => 'department_head',
                 'department_id' => $department->id,
-            ]);
-        }
+                'status' => 'pending',
+            ],
+        );
     }
 }

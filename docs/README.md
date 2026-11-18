@@ -1,0 +1,15 @@
+# Documentation index
+
+Read in this order to understand the project from scratch:
+
+| # | Document | What it covers |
+| --- | --- | --- |
+| 1 | [getting-started.md](getting-started.md) | Prerequisites, backend/frontend setup, demo accounts, how to register and verify staff |
+| 2 | [architecture.md](architecture.md) | What the system is, how data flows (ETL vs REST), roles, architecture & tech stack, API conventions |
+| 3 | [features.md](features.md) | Full feature catalogue: registration & verification, RBAC, CRUD modules, ETL sync, integration push, duplicates, audit logs, reports & dashboard |
+| 4 | [edm-principles.md](edm-principles.md) | Course mapping: Integration, Governance, DQM, EDM benefits, scope vs the full Education/University case |
+| 5 | [deployment.md](deployment.md) | Deploying the Laravel API to Render (free tier) with Aiven MySQL: Dockerfile, environment variables, verification, caveats |
+
+Other docs in the repository:
+
+- `server/AGENTS.md` / `server/CLAUDE.md` — agent-oriented conventions for the Laravel API (clean architecture, envelope conventions)

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             DepartmentsSeeder::class,
             UsersSeeder::class,
             StudentsSeeder::class,
+            DemoActivitySeeder::class,
             SourceDataSeeder::class,
         ]);
     }

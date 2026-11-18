@@ -161,25 +161,27 @@ class StudentsSeeder extends Seeder
         foreach ($students as $student) {
             $program = Program::query()->where('code', $student['program'])->firstOrFail();
 
-            $indexed[$student['student_number']] = Student::create([
-                'student_number' => $student['student_number'],
-                'first_name' => $student['first_name'],
-                'middle_name' => $student['middle_name'],
-                'last_name' => $student['last_name'],
-                'suffix' => null,
-                'email' => $student['email'],
-                'phone' => $student['phone'],
-                'sex' => $student['sex'],
-                'birth_date' => $student['birth_date'],
-                'address' => $student['address'],
-                'program_id' => $program->id,
-                'department_id' => $program->department_id,
-                'year_level' => $student['year_level'],
-                'status' => $student['status'],
-                'source' => 'central',
-                'integrity_status' => 'clean',
-                'duplicate_of_id' => null,
-            ]);
+            $indexed[$student['student_number']] = Student::firstOrCreate(
+                ['student_number' => $student['student_number']],
+                [
+                    'first_name' => $student['first_name'],
+                    'middle_name' => $student['middle_name'],
+                    'last_name' => $student['last_name'],
+                    'suffix' => null,
+                    'email' => $student['email'],
+                    'phone' => $student['phone'],
+                    'sex' => $student['sex'],
+                    'birth_date' => $student['birth_date'],
+                    'address' => $student['address'],
+                    'program_id' => $program->id,
+                    'department_id' => $program->department_id,
+                    'year_level' => $student['year_level'],
+                    'status' => $student['status'],
+                    'source' => 'central',
+                    'integrity_status' => 'clean',
+                    'duplicate_of_id' => null,
+                ],
+            );
         }
 
         $terms = [
@@ -273,25 +275,33 @@ class StudentsSeeder extends Seeder
             $student = $indexed[$studentNumber];
 
             foreach ($plans as [$academicYear, $semester, $status, $enrolledAt, $records]) {
-                $enrollment = Enrollment::create([
-                    'student_id' => $student->id,
-                    'academic_year' => $academicYear,
-                    'semester' => $semester,
-                    'status' => $status,
-                    'enrolled_at' => $enrolledAt,
-                ]);
+                $enrollment = Enrollment::firstOrCreate(
+                    [
+                        'student_id' => $student->id,
+                        'academic_year' => $academicYear,
+                        'semester' => $semester,
+                    ],
+                    [
+                        'status' => $status,
+                        'enrolled_at' => $enrolledAt,
+                    ],
+                );
 
                 foreach ($records as [$code, $name, $grade, $remarks]) {
-                    AcademicRecord::create([
-                        'student_id' => $student->id,
-                        'enrollment_id' => $enrollment->id,
-                        'subject_code' => $code,
-                        'subject_name' => $name,
-                        'semester' => $semester,
-                        'grade' => $grade,
-                        'remarks' => $remarks,
-                        'academic_year' => $academicYear,
-                    ]);
+                    AcademicRecord::firstOrCreate(
+                        [
+                            'enrollment_id' => $enrollment->id,
+                            'subject_code' => $code,
+                        ],
+                        [
+                            'student_id' => $student->id,
+                            'subject_name' => $name,
+                            'semester' => $semester,
+                            'grade' => $grade,
+                            'remarks' => $remarks,
+                            'academic_year' => $academicYear,
+                        ],
+                    );
                 }
             }
         }

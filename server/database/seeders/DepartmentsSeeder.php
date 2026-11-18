@@ -18,7 +18,7 @@ class DepartmentsSeeder extends Seeder
         ];
 
         foreach ($departments as $department) {
-            Department::create($department);
+            Department::firstOrCreate(['code' => $department['code']], $department);
         }
 
         $programs = [
@@ -34,11 +34,13 @@ class DepartmentsSeeder extends Seeder
                 ->where('code', $program['department'])
                 ->firstOrFail();
 
-            Program::create([
-                'code' => $program['code'],
-                'name' => $program['name'],
-                'department_id' => $department->id,
-            ]);
+            Program::firstOrCreate(
+                ['code' => $program['code']],
+                [
+                    'name' => $program['name'],
+                    'department_id' => $department->id,
+                ],
+            );
         }
     }
 }
