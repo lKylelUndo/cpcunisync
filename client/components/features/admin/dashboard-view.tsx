@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { getNavItems } from "@/components/features/admin/admin-navigation";
 import { AdminPageHeader } from "@/components/features/admin/AdminPageHeader";
 import { StatsCard } from "@/components/features/admin/StatsCard";
 import { BarList } from "@/components/features/shared/BarList";
@@ -39,53 +38,8 @@ import {
   type DashboardData,
 } from "@/services/dashboard.service";
 
-const QUICK_LINKS = [
-  {
-    path: "/students",
-    label: "Student registry",
-    description: "Search, edit, and inspect student records.",
-    icon: UsersIcon,
-  },
-  {
-    path: "/enrollments",
-    label: "Enrollments",
-    description: "Manage term enrollment records.",
-    icon: ClipboardListIcon,
-  },
-  {
-    path: "/integrations",
-    label: "Integrations",
-    description: "Run department syncs and review ingestion activity.",
-    icon: RefreshCwIcon,
-  },
-  {
-    path: "/duplicates",
-    label: "Duplicate queue",
-    description: "Resolve suspected duplicate students.",
-    icon: CopyIcon,
-  },
-  {
-    path: "/academic-records",
-    label: "Academic records",
-    description: "Review subject grades and remarks.",
-    icon: BookOpenIcon,
-  },
-  {
-    path: "/reports",
-    label: "Reports",
-    description: "Enrollment, academic, and sync summaries.",
-    icon: BarChart3Icon,
-  },
-];
-
 export function DashboardView() {
   const { user } = useAuth();
-  const visibleNavPaths = new Set(
-    getNavItems(user).map((item) => item.path),
-  );
-  const quickLinks = QUICK_LINKS.filter((link) =>
-    visibleNavPaths.has(link.path),
-  );
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -358,41 +312,6 @@ export function DashboardView() {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Quick links</CardTitle>
-                <CardDescription>
-                  Jump to the registrar workflows used most often.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {quickLinks.map((link) => {
-                  const Icon = link.icon;
-                  const href = workspacePath(user, link.path);
-
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      className="group flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-accent"
-                    >
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground group-hover:bg-background">
-                        <Icon className="size-4" />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="flex items-center gap-1 text-sm font-medium">
-                          {link.label}
-                          <ArrowRightIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
-                        </span>
-                        <span className="mt-0.5 block text-xs text-muted-foreground">
-                          {link.description}
-                        </span>
-                      </span>
-                    </Link>
-                  );
-                })}
-              </CardContent>
-            </Card>
           </div>
         </>
       ) : null}
