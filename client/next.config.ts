@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // instant-navigation validation. Only segments that explicitly export
   // `instant` are validated; dev-only warnings, no production impact.
   experimental: {
+    agentUpgrade: "security",
     instantInsights: {
       validationLevel: "manual-warning",
     },
