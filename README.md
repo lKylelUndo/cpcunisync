@@ -31,7 +31,7 @@ On top of the data layer sit the people workflows: staff sign up themselves, an 
 | --- | --- |
 | **Admin** | Everything: verify/reject/suspend/reinstate/delete staff registrations, full student CRUD, run syncs, merge/dismiss duplicates, view audit logs and reports. |
 | **Registrar** | Run the office day-to-day: full student/enrollment/academic-record CRUD, ETL runs, integration pushes, reports, and dashboards. No access to the Registrations page. |
-| **Department head** | Strictly read-only: browse students, enrollments, records, sources, and reports for reference. Every write route returns 403. |
+| **Department head** | Strictly read-only: browse students, enrollments, records, sources, and reports for reference — scoped to their own department's data only. Every write route returns 403. |
 
 ### Architecture & tech stack
 
@@ -74,6 +74,16 @@ This project is a working application of the three Enterprise Data Management co
 | **Compliance & security** | RBAC, token-based auth, staff verification workflow, full audit trails. (Encryption in transit/at rest is a future item on the local XAMPP setup.) |
 | **Student 360° view** | The education-case analog of Customer/Patient 360: one student profile unifying enrollment history + academic records + program/department across all three colleges. |
 | **AI readiness** | The clean, deduplicated central store is exactly the reliable input ML would need — no models are implemented; this is the future step. |
+
+### Scope vs the full Education/University case
+
+The lesson offers five industry cases — healthcare, banking, retail, manufacturing, and education/university. This project implements the **Education / University** case, which lists SIS, LMS, HR/payroll, library, and alumni CRM as sources, with a lifecycle goal of enrollment → learning → graduation → alumni under FERPA/GDPR. CPC UniSync deliberately targets the case's core challenge — **siloed academic departments** — and bounds the rest:
+
+- **Sources**: three departmental SIS-style datasets (COE/CIT/CHM) rather than five vendor systems — the siloed-departments problem simulated end-to-end. LMS, HR/payroll, library, and alumni CRM are future integrations that would enter through the same ETL/API entry points.
+- **Lifecycle**: enrollment and academic performance through graduation status; learning-activity (LMS) and alumni management are future work.
+- **Access**: staff-facing only (admin, registrar, department heads) with verification-gated accounts; a student self-service portal is future work.
+- **Compliance**: secure access + full audit trails implemented as the FERPA/GDPR foundation; formal certification is out of scope.
+- **Encryption**: passwords hashed, token-based auth; TLS in transit and encryption at rest are future work on the local XAMPP setup.
 
 ## Departments & Programs
 
@@ -129,7 +139,7 @@ Additional staff accounts (`registrar`, `department_head`) can self-register:
 
 1. Staff member signs up at `/register` with name, email, password, role (registrar or department head), and optional department.
 2. The account is created with status `pending` and cannot log in yet (login returns an "awaiting administrator verification" notice).
-3. The admin opens **Registrations** (`/admin/registrations`), reviews pending sign-ups (Pending / Verified / Rejected tabs), and clicks **Verify** or **Reject** (with an optional reason) in `/api/admin/v1/verify-user/{id}` / `reject-user/{id}`.
+3. The admin opens **Registrations** (`/{workspace}/registrations` — e.g. `/admin/registrations`), reviews pending sign-ups (Pending / Verified / Rejected tabs), and clicks **Verify** or **Reject** (with an optional reason) in `/api/admin/v1/verify-user/{id}` / `reject-user/{id}`.
 4. Verified: login issues a Sanctum token immediately. Rejected: login stays blocked and shows the admin's rejection reason.
 
 Registration is limited to `registrar` and `department_head` roles — admin accounts cannot be created through `/register`.
@@ -174,7 +184,7 @@ Registration is limited to `registrar` and `department_head` roles — admin acc
 - Enrollment stats: per-academic-year/semester totals with program & department breakdowns and a gender split.
 - Academic summary: passed / failed / incomplete / ongoing counts, pass-rate %, and per-program and per-year-level grade averages.
 - Sync status: run totals by status, per-department last-run and error summary, and a 7-day recent-error count.
-- Dashboard: write-gated stat cards (totals, active share, duplicate suspects, program count), department bars, gender bars, status chips, last-sync + sync-health tiles, and quick links.
+- Dashboard: write-gated stat cards (totals, active share, duplicate suspects, program count), department bars, gender bars, status chips, and last-sync + sync-health tiles.
 
 ### Health & conventions
 - `GET /api/health` public liveness check.
