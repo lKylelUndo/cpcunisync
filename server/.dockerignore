@@ -1,0 +1,16 @@
+.env
+.env.*
+.git
+.gitignore
+.github
+node_modules
+public/hot
+public/storage
+storage/logs/*.log
+tests
+.phpunit.cache
+Dockerfile
+.dockerignore
+README.md
+AGENTS.md
+CLAUDE.md
