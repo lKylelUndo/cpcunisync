@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
-  GraduationCapIcon,
   Loader2Icon,
   UserPlusIcon,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import { Controller, useForm, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
 
 import { AuthGuard } from "@/components/features/auth/AuthGuard";
+import { Seal } from "@/components/features/landing/seal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -165,7 +165,7 @@ export function RegisterView() {
   };
 
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center bg-muted/30 px-4 py-10">
+    <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
       <AuthGuard mode="GUEST">
         {submitted ? (
           <Card className="w-full max-w-md border-border/70 shadow-lg">
@@ -194,9 +194,7 @@ export function RegisterView() {
           <Card className="w-full max-w-md border-border/70 shadow-lg">
             <CardHeader className="gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <GraduationCapIcon className="size-6" />
-                </div>
+                <Seal size="sm" className="size-11" />
                 <div className="space-y-1">
                   <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
                     Cordova Public College

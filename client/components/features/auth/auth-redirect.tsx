@@ -1,23 +1,38 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { SessionLoader } from "@/components/common/session-loader";
 import { useAuth } from "@/context/AuthContext";
 import { workspacePath } from "@/lib/workspace";
 
-export function AuthRedirect() {
+interface AuthRedirectProps {
+  children: ReactNode;
+}
+
+/**
+ * Sends signed-in users to their workspace and lets guests through to the
+ * public landing page. The loader covers session verification and the brief
+ * window before an authenticated redirect.
+ */
+export function AuthRedirect({ children }: AuthRedirectProps) {
   const router = useRouter();
   const { user, isLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isLoading) {
+    if (isLoading || !isAuthenticated) {
       return;
     }
 
-    router.replace(isAuthenticated ? workspacePath(user) : "/login");
+    router.replace(workspacePath(user));
   }, [isLoading, isAuthenticated, user, router]);
 
-  return <SessionLoader />;
+  if (isLoading || isAuthenticated) {
+    return (
+      <SessionLoader className="bg-[#f7f9fc] dark:bg-[#0a1024]" />
+    );
+  }
+
+  return <>{children}</>;
 }

@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCapIcon } from "lucide-react";
 
 import {
   getNavItems,
   isWorkspaceNavItemActive,
 } from "@/components/features/admin/admin-navigation";
+import { Seal } from "@/components/features/landing/seal";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { workspaceLabel } from "@/lib/workspace";
@@ -20,11 +20,11 @@ export function WorkspaceSidebar() {
   return (
     <aside className="sticky top-0 hidden h-svh w-16 shrink-0 flex-col border-r bg-sidebar md:flex lg:w-64">
       <div className="flex h-16 shrink-0 items-center justify-center gap-3 border-b border-sidebar-border px-3 lg:justify-start lg:px-5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <GraduationCapIcon className="size-5" />
-        </div>
+        <Seal size="sm" className="size-9" />
         <div className="hidden min-w-0 lg:block">
-          <p className="truncate text-sm font-semibold">CPC UniSync</p>
+          <p className="truncate text-sm font-semibold">
+            CPC UniSync<span aria-hidden className="text-[#d9a51c]">.</span>
+          </p>
           <p className="truncate text-[11px] text-muted-foreground">
             {workspaceLabel(user)}
           </p>

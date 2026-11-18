@@ -7,12 +7,12 @@ import { isAxiosError } from "axios";
 import {
   EyeIcon,
   EyeOffIcon,
-  GraduationCapIcon,
   Loader2Icon,
   LockKeyholeIcon,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 
+import { Seal } from "@/components/features/landing/seal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,9 +76,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md border-border/70 shadow-lg">
       <CardHeader className="gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <GraduationCapIcon className="size-6" />
-          </div>
+          <Seal size="sm" className="size-11" />
           <div className="space-y-1">
             <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
               Cordova Public College
