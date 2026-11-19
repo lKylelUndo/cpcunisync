@@ -14,7 +14,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { OUTLINE_ACTION, PRIMARY_ACTION } from "./public-action-styles";
+import { PRIMARY_ACTION } from "./public-action-styles";
 import { PublicHeader } from "./public-header";
 import { Seal } from "./seal";
 
@@ -182,24 +182,6 @@ export function LandingPage() {
               academic records, and student profiles consistent across the
               college&apos;s departments and systems.
             </p>
-
-            <div className="mt-10 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className={`w-full px-7 sm:w-auto ${OUTLINE_ACTION}`}
-              >
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                className={`w-full px-7 sm:w-auto ${PRIMARY_ACTION}`}
-              >
-                <Link href="/register">Create account</Link>
-              </Button>
-            </div>
 
             <p className="mt-7 text-[10px] font-medium tracking-[0.32em] text-slate-500 uppercase dark:text-slate-400">
               Batch ETL

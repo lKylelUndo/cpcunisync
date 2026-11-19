@@ -7,6 +7,7 @@ use App\Http\Repository\SourceRepository;
 use App\Http\Repository\StudentRepository;
 use App\Http\Repository\SyncErrorRepository;
 use App\Http\Repository\SyncRunRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Services\Student\DuplicateDetectionService;
 use App\Http\Services\Student\StudentRules;
@@ -198,6 +199,8 @@ final class RunSyncService
             ]);
 
             $run->load(['department', 'syncErrors']);
+
+            CacheService::invalidate();
 
             return self::success(
                 'Synchronisation completed.',

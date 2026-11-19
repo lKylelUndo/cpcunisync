@@ -35,6 +35,7 @@ On top of the data layer sit the people workflows: staff sign up themselves, an 
 | --- | --- | --- |
 | API (`server/`) | Laravel 13, PHP 8.5, MySQL, Sanctum | Clean architecture: thin controllers → per-operation services → repositories; flat JSON envelope on HTTP 200; centralized JSON exception rendering (401/403/404/500). |
 | Frontend (`client/`) | Next.js 16.4 (React 19), axios, shadcn/ui, Zod | SPA dashboard behind an `AuthGuard`; axios injects the Sanctum token and auto-logs-out on 401; forms are Zod-validated with inline server errors. |
+| Cache (`server/`) | Upstash Redis (via Predis) | 5-minute read caching of registration options, dashboard aggregates, and registration lists; optional locally (database cache), with DB fallback on cache errors. |
 
 ## Departments & programs
 
@@ -52,3 +53,9 @@ Simulated departmental source datasets live in `server/database/sources/{educati
 - Flat envelope on HTTP 200: `{ status: "success" | "error", message, data?, source? }`; FormRequest validation failures use Laravel's 422 envelope; unauthenticated 401 / unauthorized 403 are JSON.
 - Versioned route groups, e.g. `POST /api/students/v1/create-student` (full map: `routes/api.php`).
 - `GET /api/health` — public liveness check.
+
+## Caching (Upstash Redis)
+
+- Optional at deploy time via env only: `CACHE_STORE=redis`, `REDIS_URL` (Upstash `rediss://` DSN), `REDIS_CLIENT=predis`, `REDIS_CACHE_DB=0`. Local dev keeps `CACHE_STORE=database` and needs no Redis.
+- `CacheService` wraps Laravel's cache with namespaced, versioned keys (`cpc:<name>:v<version>`), a 5-minute TTL, DB fallback on any cache error, and best-effort global invalidation (bump `cpc:cache:version`) after staff-account writes and successful sync runs.
+- Cached reads: registration options, role/department-scoped dashboard aggregates, paginated registration lists. Dashboard keys include the caller's scope so department heads can never see another department's cached data.

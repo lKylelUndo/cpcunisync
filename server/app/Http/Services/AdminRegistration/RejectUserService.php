@@ -5,6 +5,7 @@ namespace App\Http\Services\AdminRegistration;
 use App\Http\Repository\UserRepository;
 use App\Http\Requests\AdminRegistration\RejectUserRequest;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -55,6 +56,8 @@ final class RejectUserService
                 'status' => 'rejected',
                 'verification_note' => $note,
             ], $admin, $request->ip());
+
+            CacheService::invalidate();
 
             return self::success('User registration rejected successfully.', [
                 'user' => self::userPayload($rejected),

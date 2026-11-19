@@ -6,10 +6,11 @@ PHP has no native Render runtime — native runtimes are Node/Python/Ruby/Go/Rus
 Browser (Vercel / local Next.js)
       │ HTTPS, bearer token
       ▼
-Render Docker web service              ┌─────────────────────────────┐
-server/Dockerfile: PHP 8.5 +         ──▶│ Aiven MySQL (MySQL 8.4,     │
-artisan serve on $PORT                  │ defaultdb, TLS, Singapore)  │
-                                     └─────────────────────────────┘
+Render Docker web service         ┌─────────────────────────────┐
+server/Dockerfile: PHP 8.5 +     ─┤ Aiven MySQL (MySQL 8.4,     │
+artisan serve on $PORT            │ defaultdb, TLS, Singapore)  │
+      │                           └─────────────────────────────┘
+      └────────────────────────▶  Upstash Redis (TLS, cache)
 ```
 
 ## 1. Create the database (Aiven MySQL)
@@ -38,7 +39,7 @@ php artisan migrate --force && php artisan db:seed --force && php artisan serve 
 2. Render Dashboard → **New → Web Service** → connect the repo.
 3. Runtime → **Docker**; **Root Directory** → `server` (build context = the Laravel app; the Dockerfile is at `server/Dockerfile`).
 4. Health Check Path → `/api/health`.
-5. Under **Environment**, add the variables below — the only secrets are `APP_KEY` and `DB_PASSWORD`:
+5. Under **Environment**, add the variables below — the secrets are `APP_KEY`, `DB_PASSWORD`, and `REDIS_URL` (dashboard only, never committed):
 
 **Environment variables:**
 
@@ -55,13 +56,18 @@ php artisan migrate --force && php artisan db:seed --force && php artisan serve 
 | `DB_DATABASE` | `defaultdb` |
 | `DB_USERNAME` | Aiven username |
 | `DB_PASSWORD` | Aiven password — secret, dashboard only |
-| `CACHE_STORE` | `database` |
+| `REDIS_URL` | Upstash Redis URL (`rediss://default:<TOKEN>@<endpoint>:6379`) — secret, dashboard only |
+| `REDIS_CLIENT` | `predis` |
+| `CACHE_STORE` | `redis` |
+| `REDIS_CACHE_DB` | `0` — Upstash free tier supports only DB 0 |
 | `SESSION_DRIVER` | `database` |
 | `QUEUE_CONNECTION` | `database` |
 | `SOURCE_API_BASE_URL` | `https://<your-service>.onrender.com` — must be the deployed URL or ETL sync cannot extract the source datasets |
 | `CORS_ALLOWED_ORIGINS` | comma-separated browser origins allowed to call the API, e.g. `http://localhost:3000,https://cpcunisync.vercel.app` (parsed by `config/cors.php`; defaults to the localhost pair) |
 
 `PORT` must not be set — Render injects it. Do not commit secrets to the repo.
+
+Redis caching is optional locally: the local `.env` keeps `CACHE_STORE=database`. **On Render, change the existing `CACHE_STORE=database` to `redis`** and add the three `REDIS_*` variables above — leaving it as `database` makes the cache layer write to Aiven's `cache` table instead of Upstash. When Redis is enabled, registration options, dashboards, and registration lists are cached for 5 minutes under namespaced, versioned `cpc:` keys; writes bump a version counter to invalidate them globally. Any Redis failure is caught and the request falls back to the database, so an unavailable cache never breaks a request. Upstash's free tier supports only database `0`, so `REDIS_CACHE_DB` must be `0`.
 
 ## 4. Verify after deploy
 

@@ -4,6 +4,7 @@ namespace App\Http\Services\AdminRegistration;
 
 use App\Http\Repository\UserRepository;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -58,6 +59,8 @@ final class VerifyUserService
                 'verified_by' => $admin->id,
                 'verified_at' => $verified->verified_at?->toISOString(),
             ], $admin, $request->ip());
+
+            CacheService::invalidate();
 
             return self::success('User verified successfully.', [
                 'user' => self::userPayload($verified),

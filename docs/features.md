@@ -43,5 +43,6 @@
 ## Conventions
 - `GET /api/health` — public liveness check.
 - Thin controllers → per-operation services → repositories; flat `{ status, message, data?, source? }` envelope on HTTP 200 — see [architecture.md](architecture.md#api-conventions) for the full API conventions.
+- Optional Upstash Redis caching (5-minute TTL, DB fallback) for registration options, dashboards and registration lists — see [architecture.md](architecture.md#caching-upstash-redis).
 
 Run the client and log in to explore: the dashboard shows the last sync, program/department breakdowns, and duplicate count; **Integrations** replays departmental ETL runs; `/register` + **Registrations** handle the staff sign-up and admin verification workflow.

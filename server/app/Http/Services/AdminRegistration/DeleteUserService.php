@@ -4,6 +4,7 @@ namespace App\Http\Services\AdminRegistration;
 
 use App\Http\Repository\UserRepository;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -58,6 +59,8 @@ final class DeleteUserService
             $repository->delete($user);
 
             AuditService::Record('deleted_user', 'User', $id, $oldValues, null, $admin, $request->ip());
+
+            CacheService::invalidate();
 
             return self::success('User deleted successfully.', [
                 'id' => $id,

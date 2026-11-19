@@ -3,6 +3,7 @@
 namespace App\Http\Services\AdminRegistration;
 
 use App\Http\Repository\UserRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,36 +29,42 @@ final class GetAllRegistrationsService
             'q' => $request->input('q'),
         ];
 
+        $key = 'registrations:'.md5(json_encode([$status, $request->input('q'), $page, $perPage]));
+
         try {
-            $result = (new UserRepository)->searchRegistrations($filters, $page, $perPage);
+            $payload = CacheService::remember($key, 300, function () use ($filters, $page, $perPage): array {
+                $result = (new UserRepository)->searchRegistrations($filters, $page, $perPage);
 
-            $items = $result['items']
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'department' => $user->department !== null ? [
-                        'id' => $user->department->id,
-                        'code' => $user->department->code,
-                        'name' => $user->department->name,
-                    ] : null,
-                    'status' => $user->status,
-                    'verification_note' => $user->verification_note,
-                    'verified_by' => $user->verified_by,
-                    'verified_at' => $user->verified_at?->toISOString(),
-                    'registered_at' => $user->created_at?->toISOString(),
-                ])
-                ->values()
-                ->all();
+                $items = $result['items']
+                    ->map(fn ($user) => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                        'department' => $user->department !== null ? [
+                            'id' => $user->department->id,
+                            'code' => $user->department->code,
+                            'name' => $user->department->name,
+                        ] : null,
+                        'status' => $user->status,
+                        'verification_note' => $user->verification_note,
+                        'verified_by' => $user->verified_by,
+                        'verified_at' => $user->verified_at?->toISOString(),
+                        'registered_at' => $user->created_at?->toISOString(),
+                    ])
+                    ->values()
+                    ->all();
 
-            return self::success('Registrations retrieved successfully.', [
-                'items' => $items,
-                'page' => $result['page'],
-                'per_page' => $result['per_page'],
-                'total' => $result['total'],
-                'total_pages' => $result['total_pages'],
-            ]);
+                return [
+                    'items' => $items,
+                    'page' => $result['page'],
+                    'per_page' => $result['per_page'],
+                    'total' => $result['total'],
+                    'total_pages' => $result['total_pages'],
+                ];
+            });
+
+            return self::success('Registrations retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to retrieve registrations.');
         }

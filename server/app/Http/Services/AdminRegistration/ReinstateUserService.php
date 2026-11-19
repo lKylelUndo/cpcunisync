@@ -4,6 +4,7 @@ namespace App\Http\Services\AdminRegistration;
 
 use App\Http\Repository\UserRepository;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -53,6 +54,8 @@ final class ReinstateUserService
             ], [
                 'status' => 'verified',
             ], $admin, $request->ip());
+
+            CacheService::invalidate();
 
             return self::success('User reinstated successfully.', [
                 'user' => self::userPayload($reinstated),
