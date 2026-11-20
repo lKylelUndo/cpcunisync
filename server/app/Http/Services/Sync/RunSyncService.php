@@ -64,6 +64,7 @@ final class RunSyncService
                 'duplicates' => 0,
                 'failed' => 0,
             ];
+            $warnings = [];
 
             $studentRepository = new StudentRepository;
             $errors = new SyncErrorRepository;
@@ -79,16 +80,26 @@ final class RunSyncService
                     if ($payload === null || ! isset($payload['records']) || ! is_array($payload['records'])) {
                         throw new \RuntimeException('invalid source payload');
                     }
-                } catch (Throwable) {
-                    $errors->create([
-                        'sync_run_id' => $run->id,
-                        'row_identifier' => 'source:'.$key,
-                        'message' => 'The source could not be read.',
-                        'payload' => null,
-                    ]);
-                    $counts['failed']++;
+                } catch (Throwable $exception) {
+                    // A single-worker `artisan serve` cannot answer its own HTTP
+                    // request — the nested fetch times out. Use the same dataset
+                    // on disk so the REST pull still completes, and say so.
+                    $fallback = $method === 'rest' ? $sources->readFile($key) : null;
 
-                    continue;
+                    if ($fallback !== null && isset($fallback['records']) && is_array($fallback['records'])) {
+                        $payload = $fallback;
+                        $warnings[] = "remote source for {$key} unavailable; used the local dataset";
+                    } else {
+                        $errors->create([
+                            'sync_run_id' => $run->id,
+                            'row_identifier' => 'source:'.$key,
+                            'message' => 'The source could not be read.',
+                            'payload' => ['error' => $exception->getMessage()],
+                        ]);
+                        $counts['failed']++;
+
+                        continue;
+                    }
                 }
 
                 foreach ($payload['records'] as $index => $record) {
@@ -186,7 +197,7 @@ final class RunSyncService
                 ...$counts,
                 'status' => $status,
                 'message' => sprintf(
-                    '%s sync finished: %d extracted, %d loaded, %d updated, %d skipped, %d duplicates, %d failed.',
+                    '%s sync finished: %d extracted, %d loaded, %d updated, %d skipped, %d duplicates, %d failed.%s',
                     strtoupper($method),
                     $counts['extracted'],
                     $counts['loaded'],
@@ -194,6 +205,7 @@ final class RunSyncService
                     $counts['skipped'],
                     $counts['duplicates'],
                     $counts['failed'],
+                    $warnings === [] ? '' : ' Note: '.implode('; ', $warnings).'.',
                 ),
                 'finished_at' => now(),
             ]);
