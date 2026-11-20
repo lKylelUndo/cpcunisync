@@ -18,7 +18,7 @@ export const syncSourceSchema = z.enum(["education", "it", "hospitality"]);
 
 export const syncRunSchema = z.object({
   department_code: syncSourceSchema.optional(),
-  method: syncMethodSchema.optional(),
+  method: z.literal("etl").optional(),
 });
 
 export type SyncRunInput = z.infer<typeof syncRunSchema>;

@@ -26,7 +26,6 @@ import { apiErrorMessage } from "@/lib/api-errors";
 import { formatDateTimeValue, humanize } from "@/lib/format";
 import {
   syncService,
-  type SyncMethod,
   type SyncRun,
   type SyncSource,
 } from "@/services/sync.service";
@@ -49,7 +48,6 @@ export function SyncRunCard({
   onViewRun,
 }: SyncRunCardProps) {
   const [source, setSource] = useState<SyncSource>("education");
-  const [method, setMethod] = useState<SyncMethod>("etl");
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<SyncRun | null>(null);
 
@@ -59,7 +57,7 @@ export function SyncRunCard({
     try {
       const response = await syncService.runSync({
         department_code: source,
-        method,
+        method: "etl",
       });
 
       if (response.status === "success" && response.data) {
@@ -88,7 +86,7 @@ export function SyncRunCard({
       <CardHeader>
         <CardTitle>Run department sync</CardTitle>
         <CardDescription>
-          Pull students from a simulated department source into the central
+          Pulls a simulated department source file into the central
           registry. Simulated department sources: education, it, hospitality.
           Every run is recorded below.
         </CardDescription>
@@ -96,47 +94,26 @@ export function SyncRunCard({
       <CardContent className="space-y-4">
         {canWrite ? (
           <>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="sync-source">Source department</Label>
-                <Select
-                  value={source}
-                  onValueChange={(value) =>
-                    setSource(value as SyncSource)
-                  }
-                  disabled={isRunning}
-                >
-                  <SelectTrigger id="sync-source" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SOURCES.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="sync-method">Method</Label>
-                <Select
-                  value={method}
-                  onValueChange={(value) =>
-                    setMethod(value as SyncMethod)
-                  }
-                  disabled={isRunning}
-                >
-                  <SelectTrigger id="sync-method" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="etl">ETL extraction</SelectItem>
-                    <SelectItem value="rest">REST pull</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sync-source">Source department</Label>
+              <Select
+                value={source}
+                onValueChange={(value) =>
+                  setSource(value as SyncSource)
+                }
+                disabled={isRunning}
+              >
+                <SelectTrigger id="sync-source" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOURCES.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button onClick={() => void runSync()} disabled={isRunning}>
@@ -145,11 +122,7 @@ export function SyncRunCard({
               ) : (
                 <PlayIcon />
               )}
-              {isRunning
-                ? "Running sync…"
-                : method === "etl"
-                  ? "Run ETL Sync"
-                  : "Run REST Sync"}
+              {isRunning ? "Running sync…" : "Run ETL Sync"}
             </Button>
           </>
         ) : (

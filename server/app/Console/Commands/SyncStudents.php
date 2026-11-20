@@ -9,15 +9,13 @@ use Illuminate\Console\Command;
 class SyncStudents extends Command
 {
     protected $signature = 'sync:students
-        {--department= : Source to sync: education, it or hospitality}
-        {--method=etl : Extraction method: etl or rest}';
+        {--department= : Source to sync: education, it or hospitality}';
 
     protected $description = 'Synchronise student records from the configured department sources.';
 
     public function handle(): int
     {
         $department = $this->option('department');
-        $method = $this->option('method') ?: 'etl';
 
         if ($department !== null && ! in_array($department, ['education', 'it', 'hospitality'], true)) {
             $this->error('Unknown department source. Use education, it or hospitality.');
@@ -25,15 +23,8 @@ class SyncStudents extends Command
             return self::FAILURE;
         }
 
-        if (! in_array($method, ['etl', 'rest'], true)) {
-            $this->error('Unknown method. Use etl or rest.');
-
-            return self::FAILURE;
-        }
-
         $response = RunSyncService::RunSync([
             'department_code' => $department,
-            'method' => $method,
         ]);
         $payload = $response->getData(true);
 

@@ -2,6 +2,8 @@
 
 This project is a working application of the three Enterprise Data Management core concepts — **Integration**, **Governance**, and **Data Quality Management** — for the **Education / University** industry case (siloed academic departments → unified student records → academic analytics).
 
+For the industry-case matrix mapping (data sources, integration methods, governance needs, outputs) and what is applied vs out of scope, see [education-case-mapping.md](education-case-mapping.md).
+
 ## 1. Integration — unify data across departments ✅
 
 | Lesson concept | Status | Where it lives in the project |

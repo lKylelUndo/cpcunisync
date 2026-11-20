@@ -62,7 +62,6 @@ php artisan migrate --force && php artisan db:seed --force && php artisan serve 
 | `REDIS_CACHE_DB` | `0` — Upstash free tier supports only DB 0 |
 | `SESSION_DRIVER` | `database` |
 | `QUEUE_CONNECTION` | `database` |
-| `SOURCE_API_BASE_URL` | `https://<your-service>.onrender.com` — must be the deployed URL or ETL sync cannot extract the source datasets |
 | `CORS_ALLOWED_ORIGINS` | comma-separated browser origins allowed to call the API, e.g. `http://localhost:3000,https://cpcunisync.vercel.app` (parsed by `config/cors.php`; defaults to the localhost pair) |
 
 `PORT` must not be set — Render injects it. Do not commit secrets to the repo.

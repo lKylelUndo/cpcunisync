@@ -24,16 +24,11 @@ The page sends `POST /api/sync/v1/run` (or `php artisan sync:students`) with a d
 
 A `sync_runs` row is created with `status: running`, the selected `department_id`, and `started_at`.
 
-## 2. Extract — fetch the selected source
+## 2. Extract — read the selected source
 
-- **ETL** — `SourceRepository::readFile()` reads `server/database/sources/{key}.json` directly from disk and decodes JSON. No HTTP involved. These files are written by `SourceDataSeeder` and contain deliberately messy data: inconsistent casing, multiple date formats, messy phones, lowercase program codes, and intentional duplicate rows.
-- **REST pull** — `SourceRepository::fetchRemote()` calls `Http::get("{SOURCE_API_BASE_URL}/api/sources/{key}")` with a 20-second timeout, which serves the *same* JSON over HTTP.
+`SourceRepository::readFile()` reads `server/database/sources/{key}.json` directly from disk and decodes JSON. These files are written by `SourceDataSeeder` and contain deliberately messy data: inconsistent casing, multiple date formats, messy phones, lowercase program codes, and intentional duplicate rows. The same JSON is also exposed publicly at `GET /api/sources/{key}` for inspection.
 
-The payload must contain a `records` array. If the source cannot be read or decoded, one error is logged (`row_identifier: source:{key}`, message "The source could not be read."), `failed` is incremented, that source is skipped, and the run continues with any other selected sources.
-
-> **Deployed troubleshooting for REST pull:** the source endpoint is public — `GET /api/sources/education` should return HTTP 200. If the run reports `source:education` with 0 extracted, check `SOURCE_API_BASE_URL` on the server: on Render it must be `https://<your-service>.onrender.com`, not the code default `http://127.0.0.1:8000`.
->
-> Even with the URL correct, a single-worker `php artisan serve` cannot answer its own HTTP request (the nested fetch times out after 20s — cURL error 28). `RunSyncService` therefore falls back to the same dataset on disk, completes the run, and appends an explicit note: *"remote source for {key} unavailable; used the local dataset."* The sync is still fully accounted for (extracted/loaded/skipped/duplicates/failed). To make the REST pull use a genuine HTTP round-trip on Render (Linux), add `PHP_CLI_SERVER_WORKERS=4` to the service environment so another worker can answer the self-request; the local fallback remains as a safety net.
+The payload must contain a `records` array. If the source cannot be read or decoded, one error is logged (`row_identifier: source:{key}`, message "The source could not be read.", with the exception detail in the payload), `failed` is incremented, and the run continues with any other selected sources. Real-time external integration is a separate path: `POST /api/integration/v1/students` (REST push).
 
 ## 3. Examine and transform each record
 

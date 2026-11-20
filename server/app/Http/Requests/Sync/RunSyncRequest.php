@@ -19,7 +19,7 @@ final class RunSyncRequest extends FormRequest
     {
         return [
             'department_code' => ['nullable', 'string', 'in:education,it,hospitality'],
-            'method' => ['nullable', 'string', 'in:etl,rest'],
+            'method' => ['nullable', 'string', 'in:etl'],
         ];
     }
 }

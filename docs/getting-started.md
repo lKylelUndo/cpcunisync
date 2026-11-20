@@ -17,7 +17,7 @@ php artisan sync:students            # ETL run for all sources (also upserts/ski
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-`.env` carries two database blocks. The **Aiven** block (TLS to `defaultdb`, see [deployment.md](deployment.md)) is active by default — no local MySQL is needed. The **XAMPP** block (`DB_HOST=127.0.0.1`, `DB_PORT=3306`, `DB_DATABASE=cpcunisync`, `DB_USERNAME=root`, `DB_PASSWORD=`, `SOURCE_API_BASE_URL=http://127.0.0.1:8000`) is commented and ready: swap the comment markers to run fully offline. `CORS_ALLOWED_ORIGINS` is preconfigured to `http://localhost:3000,http://127.0.0.1:3000,https://cpcunisync.vercel.app`. Local development keeps `CACHE_STORE=database`; Upstash Redis is enabled only in the Render environment (see [deployment.md](deployment.md)).
+`.env` carries two database blocks. The **Aiven** block (TLS to `defaultdb`, see [deployment.md](deployment.md)) is active by default — no local MySQL is needed. The **XAMPP** block (`DB_HOST=127.0.0.1`, `DB_PORT=3306`, `DB_DATABASE=cpcunisync`, `DB_USERNAME=root`, `DB_PASSWORD=`) is commented and ready: swap the comment markers to run fully offline. `CORS_ALLOWED_ORIGINS` is preconfigured to `http://localhost:3000,http://127.0.0.1:3000,https://cpcunisync.vercel.app`. Local development keeps `CACHE_STORE=database`; Upstash Redis is enabled only in the Render environment (see [deployment.md](deployment.md)).
 
 ## Frontend setup (client/)
 

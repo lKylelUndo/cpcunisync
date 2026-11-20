@@ -17,7 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 
-/** Orchestrates one full ETL or REST synchronisation run across department sources. */
+/** Orchestrates one full ETL synchronisation run across department sources. */
 final class RunSyncService
 {
     use ApiResponses;
@@ -64,7 +64,6 @@ final class RunSyncService
                 'duplicates' => 0,
                 'failed' => 0,
             ];
-            $warnings = [];
 
             $studentRepository = new StudentRepository;
             $errors = new SyncErrorRepository;
@@ -73,33 +72,21 @@ final class RunSyncService
 
             foreach ($keys as $key) {
                 try {
-                    $payload = $method === 'rest'
-                        ? $sources->fetchRemote($key)
-                        : $sources->readFile($key);
+                    $payload = $sources->readFile($key);
 
                     if ($payload === null || ! isset($payload['records']) || ! is_array($payload['records'])) {
                         throw new \RuntimeException('invalid source payload');
                     }
                 } catch (Throwable $exception) {
-                    // A single-worker `artisan serve` cannot answer its own HTTP
-                    // request — the nested fetch times out. Use the same dataset
-                    // on disk so the REST pull still completes, and say so.
-                    $fallback = $method === 'rest' ? $sources->readFile($key) : null;
+                    $errors->create([
+                        'sync_run_id' => $run->id,
+                        'row_identifier' => 'source:'.$key,
+                        'message' => 'The source could not be read.',
+                        'payload' => ['error' => $exception->getMessage()],
+                    ]);
+                    $counts['failed']++;
 
-                    if ($fallback !== null && isset($fallback['records']) && is_array($fallback['records'])) {
-                        $payload = $fallback;
-                        $warnings[] = "remote source for {$key} unavailable; used the local dataset";
-                    } else {
-                        $errors->create([
-                            'sync_run_id' => $run->id,
-                            'row_identifier' => 'source:'.$key,
-                            'message' => 'The source could not be read.',
-                            'payload' => ['error' => $exception->getMessage()],
-                        ]);
-                        $counts['failed']++;
-
-                        continue;
-                    }
+                    continue;
                 }
 
                 foreach ($payload['records'] as $index => $record) {
@@ -197,7 +184,7 @@ final class RunSyncService
                 ...$counts,
                 'status' => $status,
                 'message' => sprintf(
-                    '%s sync finished: %d extracted, %d loaded, %d updated, %d skipped, %d duplicates, %d failed.%s',
+                    '%s sync finished: %d extracted, %d loaded, %d updated, %d skipped, %d duplicates, %d failed.',
                     strtoupper($method),
                     $counts['extracted'],
                     $counts['loaded'],
@@ -205,7 +192,6 @@ final class RunSyncService
                     $counts['skipped'],
                     $counts['duplicates'],
                     $counts['failed'],
-                    $warnings === [] ? '' : ' Note: '.implode('; ', $warnings).'.',
                 ),
                 'finished_at' => now(),
             ]);
