@@ -124,6 +124,22 @@ export interface DuplicateGroupsData {
   groups: DuplicateGroup[];
 }
 
+export interface ImportRowError {
+  row: number;
+  identifier: string;
+  message: string;
+}
+
+export interface ImportSummary {
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  duplicates: number;
+  failed: number;
+  errors: ImportRowError[];
+}
+
 export const studentService = {
   getAllStudents: async (
     filters: StudentFilters = {},
@@ -192,4 +208,33 @@ export const studentService = {
         `/api/students/v1/dismiss-duplicate/${id}`,
       )
     ).data,
+
+  importStudents: async (file: File): Promise<ApiEnvelope<ImportSummary>> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return (
+      await axiosInstance.post<ApiEnvelope<ImportSummary>>(
+        "/api/students/v1/import-students",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      )
+    ).data;
+  },
+
+  downloadTemplate: async (): Promise<void> => {
+    const response = await axiosInstance.get<Blob>(
+      "/api/students/v1/import-template",
+      { responseType: "blob" },
+    );
+
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "cpc-students-template.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
 };

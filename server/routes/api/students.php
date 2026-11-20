@@ -21,6 +21,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
         Route::middleware('role:registrar')->group(function (): void {
             Route::get('duplicates', [StudentController::class, 'duplicates']);
+            Route::post('import-students', [StudentController::class, 'importStudents']);
+            Route::get('import-template', [StudentController::class, 'importTemplate']);
             Route::post('create-student', [StudentController::class, 'createStudent']);
             Route::post('update-student/{id}', [StudentController::class, 'updateStudent']);
             Route::post('delete-student/{id}', [StudentController::class, 'deleteStudent']);

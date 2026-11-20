@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2Icon, PlusIcon, UsersIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, UploadIcon, UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/features/admin/AdminPageHeader";
 import { EmptyState } from "@/components/features/shared/EmptyState";
 import { TableSkeleton } from "@/components/features/shared/page-skeletons";
 import { Pagination } from "@/components/features/shared/Pagination";
+import { ImportStudentsDialog } from "@/components/features/students/ImportStudentsDialog";
 import { StudentsFilters } from "@/components/features/students/StudentsFilters";
 import { StudentsFormDialog } from "@/components/features/students/StudentsFormDialog";
 import { StudentsTable } from "@/components/features/students/StudentsTable";
@@ -58,6 +59,7 @@ export function StudentsView() {
   const [programs, setPrograms] = useState<ProgramLookup[]>([]);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -190,10 +192,16 @@ export function StudentsView() {
         description="Central registry for every student pushed by departments or entered by the registrar."
         actions={
           canWrite ? (
-            <Button onClick={openCreate}>
-              <PlusIcon />
-              Create student
-            </Button>
+            <>
+              <Button onClick={() => setImportOpen(true)}>
+                <UploadIcon />
+                Import CSV
+              </Button>
+              <Button onClick={openCreate}>
+                <PlusIcon />
+                Create student
+              </Button>
+            </>
           ) : null
         }
       />
@@ -290,6 +298,12 @@ export function StudentsView() {
         student={editingStudent}
         programs={programs}
         onSaved={() => void loadStudents()}
+      />
+
+      <ImportStudentsDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={() => void loadStudents()}
       />
 
       <AlertDialog
