@@ -14,10 +14,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::prefix('students/v1')->group(function (): void {
-        Route::get('all-students', [StudentController::class, 'allStudents']);
-        Route::get('view-student/{id}', [StudentController::class, 'viewStudent']);
+        Route::middleware('role:registrar,department_head')->group(function (): void {
+            Route::get('all-students', [StudentController::class, 'allStudents']);
+            Route::get('view-student/{id}', [StudentController::class, 'viewStudent']);
+        });
 
-        Route::middleware('role:admin,registrar')->group(function (): void {
+        Route::middleware('role:registrar')->group(function (): void {
             Route::get('duplicates', [StudentController::class, 'duplicates']);
             Route::post('create-student', [StudentController::class, 'createStudent']);
             Route::post('update-student/{id}', [StudentController::class, 'updateStudent']);

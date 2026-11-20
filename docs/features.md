@@ -9,8 +9,8 @@
 
 ## Auth & RBAC
 - Sanctum personal access tokens; the SPA hydrates the session via `auth/me`, injects the bearer token through axios, and auto-logs-out on 401.
-- `role:admin,registrar` middleware guards every write route (403 otherwise); department heads are strictly read-only and scoped to their own department.
-- The UI mirrors the matrix: write buttons are role-gated (`canWrite`), the Registrations page is admin-only and hidden from other users' navigation.
+- `role:registrar` middleware guards every write route (403 otherwise); data reads are `role:registrar,department_head` (403 for admins). Admins are limited to Dashboard, Registrations and Audit Logs; department heads are strictly read-only and scoped to their own department.
+- The UI mirrors the matrix: write buttons are role-gated (`canWrite`), the Registrations page is admin-only and hidden from other users' navigation, and data pages are hidden from admins (sidebar + header) with a `NonAdminGuard` redirecting them if they open a data URL directly.
 
 ## Students / Enrollments / Academic Records
 - Full CRUD with server-side validation (FormRequests → 422) and Zod-validated clients, with inline field errors on forms.

@@ -25,7 +25,7 @@ On top of the data layer sit the people workflows: staff sign up themselves, an 
 
 | Role | What they can do |
 | --- | --- |
-| **Admin** | Everything: verify/reject/suspend/reinstate/delete staff registrations, full student CRUD, run syncs, merge/dismiss duplicates, view audit logs and reports. |
+| **Admin** | System supervision only: Dashboard oversight, verify/reject/suspend/reinstate/delete staff registrations, and audit logs. All student/enrollment/record/integration/duplicate/report pages and routes return 403. |
 | **Registrar** | Run the office day-to-day: full student/enrollment/academic-record CRUD, ETL runs, integration pushes, reports, and dashboards. No access to the Registrations page. |
 | **Department head** | Strictly read-only: browse students, enrollments, records, sources, and reports for reference — scoped to their own department's data only. Every write route returns 403. |
 

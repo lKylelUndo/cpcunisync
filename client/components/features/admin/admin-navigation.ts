@@ -23,6 +23,8 @@ export interface WorkspaceNavItem {
   adminOnly?: boolean;
   /** Visible to central staff only (administrators and registrars). */
   centralOnly?: boolean;
+  /** Hidden from administrators. */
+  notAdmin?: boolean;
 }
 
 export interface WorkspaceNavLink extends WorkspaceNavItem {
@@ -41,6 +43,7 @@ export const WORKSPACE_NAV_ITEMS: WorkspaceNavItem[] = [
     label: "Students",
     icon: UsersIcon,
     description: "Central student registry and duplicate flags.",
+    notAdmin: true,
   },
   {
     path: "/registrations",
@@ -54,12 +57,14 @@ export const WORKSPACE_NAV_ITEMS: WorkspaceNavItem[] = [
     label: "Enrollments",
     icon: ClipboardListIcon,
     description: "Term enrollment records across departments.",
+    notAdmin: true,
   },
   {
     path: "/academic-records",
     label: "Academic Records",
     icon: BookOpenIcon,
     description: "Subject grades and remarks per student.",
+    notAdmin: true,
   },
   {
     path: "/integrations",
@@ -67,6 +72,7 @@ export const WORKSPACE_NAV_ITEMS: WorkspaceNavItem[] = [
     icon: RefreshCwIcon,
     description: "Department sync runs and ingestion activity.",
     centralOnly: true,
+    notAdmin: true,
   },
   {
     path: "/duplicates",
@@ -74,6 +80,7 @@ export const WORKSPACE_NAV_ITEMS: WorkspaceNavItem[] = [
     icon: CopyIcon,
     description: "Review, dismiss, or merge suspected duplicates.",
     centralOnly: true,
+    notAdmin: true,
   },
   {
     path: "/audit-logs",
@@ -87,6 +94,7 @@ export const WORKSPACE_NAV_ITEMS: WorkspaceNavItem[] = [
     label: "Reports",
     icon: BarChart3Icon,
     description: "Enrollment, academic, and sync summaries.",
+    notAdmin: true,
   },
 ];
 
@@ -96,6 +104,10 @@ export function getNavItems(
   const role = user?.role ?? null;
 
   return WORKSPACE_NAV_ITEMS.filter((item) => {
+    if (item.notAdmin && role === "admin") {
+      return false;
+    }
+
     if (item.adminOnly && role !== "admin") {
       return false;
     }

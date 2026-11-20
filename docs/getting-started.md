@@ -35,7 +35,7 @@ Demo accounts are all seeded (password `Password1!`) — one department head per
 
 | Email | Role |
 | --- | --- |
-| admin@cpc.edu.ph | admin (verify/reject registrations, full access) |
+| admin@cpc.edu.ph | admin (Dashboard oversight, registration verification, audit logs — no data pages) |
 | registrar@cpc.edu.ph | registrar |
 | coe-head@cpc.edu.ph | department head — College of Education |
 | cit-head@cpc.edu.ph | department head — College of Information Technology |

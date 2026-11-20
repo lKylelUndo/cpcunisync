@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 
 import { AcademicRecordsView } from "@/components/features/academic-records/academic-records-view";
+import { NonAdminGuard } from "@/components/features/auth/NonAdminGuard";
 import { TableSkeleton } from "@/components/features/shared/page-skeletons";
 
 export const metadata: Metadata = {
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 export default function AcademicRecordsPage() {
   return (
     <Suspense fallback={<TableSkeleton />}>
-      <AcademicRecordsView />
+      <NonAdminGuard>
+        <AcademicRecordsView />
+      </NonAdminGuard>
     </Suspense>
   );
 }

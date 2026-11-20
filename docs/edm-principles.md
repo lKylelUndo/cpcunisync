@@ -12,7 +12,7 @@ This project is a working application of the three Enterprise Data Management co
 
 ## 2. Governance — policies, ownership, accountability ✅
 
-- **Role-based access control**: `admin` (full access), `registrar` (office workflows), `department_head` (strictly read-only) — enforced by `role:admin,registrar` middleware on every write route and mirrored in the UI (write buttons hidden, Registrations page admin-only).
+- **Role-based access control**: `admin` (system supervision only — dashboard, registrations, audit logs), `registrar` (all office workflows and writes), `department_head` (strictly read-only, own department) — enforced by `role:registrar` on writes, `role:registrar,department_head` on data reads, and `role:admin` on registrations; mirrored in the UI by nav filtering and page guards.
 - **Accountability over who may touch data**: staff self-register but start `pending`; an administrator verifies, rejects (with reason), suspends, reinstates, or deletes accounts. Nobody writes student data without an approved, attributed identity — and administrator accounts themselves are protected from suspension/deletion.
 - **Audit trails**: every create/update/delete of students, enrollments, and academic records is logged with old-vs-new values, the acting user, and IP address; registration and duplicate-resolution actions are logged explicitly; passwords are never recorded. This is the FERPA-style *secure access + auditability* foundation from the university case (formal legal compliance is out of scope for this build).
 

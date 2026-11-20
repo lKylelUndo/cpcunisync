@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::prefix('academic-records/v1')->group(function (): void {
-        Route::get('all-records', [AcademicRecordController::class, 'allRecords']);
+        Route::middleware('role:registrar,department_head')->group(function (): void {
+            Route::get('all-records', [AcademicRecordController::class, 'allRecords']);
+        });
 
-        Route::middleware('role:admin,registrar')->group(function (): void {
+        Route::middleware('role:registrar')->group(function (): void {
             Route::post('create-record', [AcademicRecordController::class, 'createRecord']);
             Route::post('update-record/{id}', [AcademicRecordController::class, 'updateRecord']);
             Route::post('delete-record/{id}', [AcademicRecordController::class, 'deleteRecord']);

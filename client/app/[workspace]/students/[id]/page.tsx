@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
+import { NonAdminGuard } from "@/components/features/auth/NonAdminGuard";
 import { ProfileSkeleton } from "@/components/features/shared/page-skeletons";
 import { StudentProfileView } from "@/components/features/students/student-profile-view";
 
@@ -23,7 +24,9 @@ export default function StudentProfilePage({
 }: StudentProfilePageProps) {
   return (
     <Suspense fallback={<ProfileSkeleton />}>
-      <StudentProfileContent params={params} />
+      <NonAdminGuard>
+        <StudentProfileContent params={params} />
+      </NonAdminGuard>
     </Suspense>
   );
 }

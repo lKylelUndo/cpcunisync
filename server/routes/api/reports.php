@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function (): void {
     Route::prefix('reports/v1')->group(function (): void {
-        Route::get('enrollment-stats', [ReportController::class, 'enrollmentStats']);
-        Route::get('academic-summary', [ReportController::class, 'academicSummary']);
-        Route::get('sync-status', [ReportController::class, 'syncStatus']);
+        Route::middleware('role:registrar,department_head')->group(function (): void {
+            Route::get('enrollment-stats', [ReportController::class, 'enrollmentStats']);
+            Route::get('academic-summary', [ReportController::class, 'academicSummary']);
+            Route::get('sync-status', [ReportController::class, 'syncStatus']);
+        });
     });
 });
