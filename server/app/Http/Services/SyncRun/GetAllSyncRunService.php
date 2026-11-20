@@ -3,6 +3,7 @@
 namespace App\Http\Services\SyncRun;
 
 use App\Http\Repository\SyncRunRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\SyncRunResource;
 use Illuminate\Http\JsonResponse;
@@ -20,21 +21,33 @@ final class GetAllSyncRunService
         $perPage = min(50, max(1, (int) $request->input('per_page', 15)));
         $filters = $request->only(['department_code', 'status', 'method']);
 
+        $user = $request->user();
+
+        $scope = $user !== null && $user->role === 'department_head'
+            ? 'dept:'.($user->department_id ?? -1)
+            : 'all';
+
+        $key = 'sync-runs:list:'.md5(json_encode([$request->all(), $scope]));
+
         try {
-            $result = (new SyncRunRepository)->search($filters, $page, $perPage);
+            $payload = CacheService::remember($key, 60, function () use ($filters, $page, $perPage): array {
+                $result = (new SyncRunRepository)->search($filters, $page, $perPage);
 
-            $items = $result['items']
-                ->map(fn ($run) => (new SyncRunResource($run))->resolve())
-                ->values()
-                ->all();
+                $items = $result['items']
+                    ->map(fn ($run) => (new SyncRunResource($run))->resolve())
+                    ->values()
+                    ->all();
 
-            return self::success('Synchronisation runs retrieved successfully.', [
-                'items' => $items,
-                'page' => $result['page'],
-                'per_page' => $result['per_page'],
-                'total' => $result['total'],
-                'total_pages' => $result['total_pages'],
-            ]);
+                return [
+                    'items' => $items,
+                    'page' => $result['page'],
+                    'per_page' => $result['per_page'],
+                    'total' => $result['total'],
+                    'total_pages' => $result['total_pages'],
+                ];
+            });
+
+            return self::success('Synchronisation runs retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to retrieve synchronisation runs.');
         }

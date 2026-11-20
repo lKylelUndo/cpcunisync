@@ -4,6 +4,7 @@ namespace App\Http\Services\Student;
 
 use App\Http\Repository\ProgramRepository;
 use App\Http\Repository\StudentRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\StudentResource;
 use Illuminate\Http\JsonResponse;
@@ -50,6 +51,8 @@ final class PostStudentService
 
             $student = $studentRepository->create($data);
             $student->load(['program.department', 'department']);
+
+            CacheService::invalidate();
 
             return self::success(
                 'Student created successfully.',

@@ -5,6 +5,7 @@ namespace App\Http\Services\AcademicRecord;
 use App\Http\Repository\AcademicRecordRepository;
 use App\Http\Repository\EnrollmentRepository;
 use App\Http\Repository\StudentRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\AcademicRecordResource;
 use Illuminate\Http\JsonResponse;
@@ -38,6 +39,8 @@ final class PostAcademicRecordService
 
             $record = (new AcademicRecordRepository)->create($data);
             $record->load(['student.program.department', 'student.department', 'enrollment']);
+
+            CacheService::invalidate();
 
             return self::success(
                 'Academic record created successfully.',

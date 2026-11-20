@@ -5,6 +5,7 @@ namespace App\Http\Services\Report;
 use App\Http\Repository\DepartmentRepository;
 use App\Http\Repository\ReportRepository;
 use App\Http\Repository\SyncErrorRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,48 +18,56 @@ final class SyncStatusReportService
 
     public static function SyncStatusReport(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $departmentId = $user !== null && $user->role === 'department_head'
+            ? ($user->department_id ?? -1)
+            : null;
+
+        $scope = $user !== null && $user->role === 'department_head'
+            ? 'dept:'.($user->department_id ?? -1)
+            : 'all';
+
         try {
-            $user = $request->user();
-            $departmentId = $user !== null && $user->role === 'department_head'
-                ? ($user->department_id ?? -1)
-                : null;
+            $payload = CacheService::remember('reports:sync-status:'.$scope, 300, function () use ($departmentId): array {
+                $runs = (new ReportRepository)->syncRunsWithDepartmentAndErrorCount($departmentId);
+                $departments = (new DepartmentRepository)->all();
 
-            $runs = (new ReportRepository)->syncRunsWithDepartmentAndErrorCount($departmentId);
-            $departments = (new DepartmentRepository)->all();
+                if ($departmentId !== null) {
+                    $departments = $departments->where('id', $departmentId)->values();
+                }
 
-            if ($departmentId !== null) {
-                $departments = $departments->where('id', $departmentId)->values();
-            }
+                $byDepartment = $departments
+                    ->map(function ($department) use ($runs): array {
+                        $departmentRuns = $runs
+                            ->where('department_id', $department->id)
+                            ->sortByDesc('id');
+                        $lastRun = $departmentRuns->first();
 
-            $byDepartment = $departments
-                ->map(function ($department) use ($runs): array {
-                    $departmentRuns = $runs
-                        ->where('department_id', $department->id)
-                        ->sortByDesc('id');
-                    $lastRun = $departmentRuns->first();
+                        return [
+                            'code' => $department->code,
+                            'name' => $department->name,
+                            'runs' => $departmentRuns->count(),
+                            'last_run_status' => $lastRun?->status,
+                            'last_run_finished_at' => $lastRun?->finished_at?->toISOString(),
+                            'errors_count' => (int) $departmentRuns->sum('sync_errors_count'),
+                        ];
+                    })
+                    ->values()
+                    ->all();
 
-                    return [
-                        'code' => $department->code,
-                        'name' => $department->name,
-                        'runs' => $departmentRuns->count(),
-                        'last_run_status' => $lastRun?->status,
-                        'last_run_finished_at' => $lastRun?->finished_at?->toISOString(),
-                        'errors_count' => (int) $departmentRuns->sum('sync_errors_count'),
-                    ];
-                })
-                ->values()
-                ->all();
+                return [
+                    'totals' => [
+                        'runs' => $runs->count(),
+                        'success' => $runs->where('status', 'success')->count(),
+                        'partial' => $runs->where('status', 'partial')->count(),
+                        'failed' => $runs->where('status', 'failed')->count(),
+                    ],
+                    'by_department' => $byDepartment,
+                    'recent_errors_count' => (new SyncErrorRepository)->countSince(now()->subDays(7), $departmentId),
+                ];
+            });
 
-            return self::success('Synchronisation status retrieved successfully.', [
-                'totals' => [
-                    'runs' => $runs->count(),
-                    'success' => $runs->where('status', 'success')->count(),
-                    'partial' => $runs->where('status', 'partial')->count(),
-                    'failed' => $runs->where('status', 'failed')->count(),
-                ],
-                'by_department' => $byDepartment,
-                'recent_errors_count' => (new SyncErrorRepository)->countSince(now()->subDays(7), $departmentId),
-            ]);
+            return self::success('Synchronisation status retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to generate the synchronisation status report.');
         }

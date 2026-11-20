@@ -4,6 +4,7 @@ namespace App\Http\Services\Enrollment;
 
 use App\Http\Repository\EnrollmentRepository;
 use App\Http\Resources\EnrollmentResource;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,21 +29,31 @@ final class GetAllEnrollmentService
             $filters['department_id'] = $user->department_id ?? -1;
         }
 
+        $scope = $user !== null && $user->role === 'department_head'
+            ? 'dept:'.($user->department_id ?? -1)
+            : 'all';
+
+        $key = 'enrollments:list:'.md5(json_encode([$request->all(), $scope]));
+
         try {
-            $result = (new EnrollmentRepository)->search($filters, $page, $perPage);
+            $payload = CacheService::remember($key, 300, function () use ($filters, $page, $perPage): array {
+                $result = (new EnrollmentRepository)->search($filters, $page, $perPage);
 
-            $items = $result['items']
-                ->map(fn ($enrollment) => (new EnrollmentResource($enrollment))->resolve())
-                ->values()
-                ->all();
+                $items = $result['items']
+                    ->map(fn ($enrollment) => (new EnrollmentResource($enrollment))->resolve())
+                    ->values()
+                    ->all();
 
-            return self::success('Enrollments retrieved successfully.', [
-                'items' => $items,
-                'page' => $result['page'],
-                'per_page' => $result['per_page'],
-                'total' => $result['total'],
-                'total_pages' => $result['total_pages'],
-            ]);
+                return [
+                    'items' => $items,
+                    'page' => $result['page'],
+                    'per_page' => $result['per_page'],
+                    'total' => $result['total'],
+                    'total_pages' => $result['total_pages'],
+                ];
+            });
+
+            return self::success('Enrollments retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to retrieve enrollments.');
         }

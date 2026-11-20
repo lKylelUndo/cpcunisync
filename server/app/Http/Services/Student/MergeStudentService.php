@@ -6,6 +6,7 @@ use App\Http\Repository\AcademicRecordRepository;
 use App\Http\Repository\EnrollmentRepository;
 use App\Http\Repository\StudentRepository;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\StudentResource;
 use Illuminate\Http\JsonResponse;
@@ -96,6 +97,8 @@ final class MergeStudentService
                 null,
                 $request->ip(),
             );
+
+            CacheService::invalidate();
 
             $primary = $students->findDetailed($primary->id);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Services\Lookup;
 
 use App\Http\Repository\ProgramRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,21 +17,23 @@ final class GetAllProgramService
     public static function GetAllProgram(Request $request): JsonResponse
     {
         try {
-            $programs = (new ProgramRepository)->allWithCounts()
-                ->map(fn ($program) => [
-                    'id' => $program->id,
-                    'code' => $program->code,
-                    'name' => $program->name,
-                    'department_id' => $program->department_id,
-                    'students_count' => (int) $program->students_count,
-                    'department' => $program->department === null ? null : [
-                        'id' => $program->department->id,
-                        'code' => $program->department->code,
-                        'name' => $program->department->name,
-                    ],
-                ])
-                ->values()
-                ->all();
+            $programs = CacheService::remember('lookups:programs', 300, function (): array {
+                return (new ProgramRepository)->allWithCounts()
+                    ->map(fn ($program) => [
+                        'id' => $program->id,
+                        'code' => $program->code,
+                        'name' => $program->name,
+                        'department_id' => $program->department_id,
+                        'students_count' => (int) $program->students_count,
+                        'department' => $program->department === null ? null : [
+                            'id' => $program->department->id,
+                            'code' => $program->department->code,
+                            'name' => $program->department->name,
+                        ],
+                    ])
+                    ->values()
+                    ->all();
+            });
 
             return self::success('Programs retrieved successfully.', $programs);
         } catch (Throwable) {

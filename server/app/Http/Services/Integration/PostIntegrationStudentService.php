@@ -5,6 +5,7 @@ namespace App\Http\Services\Integration;
 use App\Http\Repository\ProgramRepository;
 use App\Http\Repository\StudentRepository;
 use App\Http\Repository\SyncRunRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Services\Student\DuplicateDetectionService;
 use App\Http\Resources\StudentResource;
@@ -177,5 +178,7 @@ final class PostIntegrationStudentService
         } catch (Throwable) {
             // The integration response remains the authoritative result.
         }
+
+        CacheService::invalidate();
     }
 }

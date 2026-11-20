@@ -4,6 +4,7 @@ namespace App\Http\Services\Enrollment;
 
 use App\Http\Repository\EnrollmentRepository;
 use App\Http\Repository\StudentRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\EnrollmentResource;
 use Illuminate\Http\JsonResponse;
@@ -50,6 +51,8 @@ final class UpdateEnrollmentService
 
             $enrollment = $repository->update($enrollment, $data);
             $enrollment->load(['student.program.department', 'student.department']);
+
+            CacheService::invalidate();
 
             return self::success(
                 'Enrollment updated successfully.',

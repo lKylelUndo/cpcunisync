@@ -3,6 +3,7 @@
 namespace App\Http\Services\Student;
 
 use App\Http\Repository\StudentRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ final class DeleteStudentService
             }
 
             $repository->delete($student);
+
+            CacheService::invalidate();
 
             return self::success('Student deleted successfully.', ['id' => $id]);
         } catch (Throwable) {

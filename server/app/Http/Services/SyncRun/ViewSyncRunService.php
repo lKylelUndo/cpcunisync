@@ -3,6 +3,7 @@
 namespace App\Http\Services\SyncRun;
 
 use App\Http\Repository\SyncRunRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\SyncRunResource;
 use Illuminate\Http\JsonResponse;
@@ -17,18 +18,21 @@ final class ViewSyncRunService
     public static function ViewSyncRun(Request $request, int $id): JsonResponse
     {
         try {
-            $run = (new SyncRunRepository)->findDetailed($id);
+            $payload = CacheService::remember('sync-runs:detail:'.$id, 60, function () use ($id): ?array {
+                $run = (new SyncRunRepository)->findDetailed($id);
 
-            if ($run === null) {
-                return self::error('Synchronisation run not found.', 'notFound');
-            }
-
-            return self::success(
-                'Synchronisation run retrieved successfully.',
-                (new SyncRunResource($run))->resolve(),
-            );
+                return $run === null
+                    ? null
+                    : (new SyncRunResource($run))->resolve();
+            });
         } catch (Throwable) {
             return self::error('Unable to retrieve the synchronisation run.');
         }
+
+        if ($payload === null) {
+            return self::error('Synchronisation run not found.', 'notFound');
+        }
+
+        return self::success('Synchronisation run retrieved successfully.', $payload);
     }
 }

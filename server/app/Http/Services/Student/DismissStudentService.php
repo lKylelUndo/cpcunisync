@@ -4,6 +4,7 @@ namespace App\Http\Services\Student;
 
 use App\Http\Repository\StudentRepository;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\StudentResource;
 use Illuminate\Http\JsonResponse;
@@ -44,6 +45,8 @@ final class DismissStudentService
                 null,
                 $request->ip(),
             );
+
+            CacheService::invalidate();
 
             $student->load(['program.department', 'department']);
 

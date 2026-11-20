@@ -3,6 +3,7 @@
 namespace App\Http\Services\AcademicRecord;
 
 use App\Http\Repository\AcademicRecordRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ final class DeleteAcademicRecordService
             }
 
             $repository->delete($record);
+
+            CacheService::invalidate();
 
             return self::success('Academic record deleted successfully.', ['id' => $id]);
         } catch (Throwable) {

@@ -3,6 +3,7 @@
 namespace App\Http\Services\Enrollment;
 
 use App\Http\Repository\EnrollmentRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,8 @@ final class DeleteEnrollmentService
             }
 
             $repository->delete($enrollment);
+
+            CacheService::invalidate();
 
             return self::success('Enrollment deleted successfully.', ['id' => $id]);
         } catch (Throwable) {

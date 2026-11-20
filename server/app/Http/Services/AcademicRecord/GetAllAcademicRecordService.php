@@ -4,6 +4,7 @@ namespace App\Http\Services\AcademicRecord;
 
 use App\Http\Repository\AcademicRecordRepository;
 use App\Http\Resources\AcademicRecordResource;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,21 +29,31 @@ final class GetAllAcademicRecordService
             $filters['department_id'] = $user->department_id ?? -1;
         }
 
+        $scope = $user !== null && $user->role === 'department_head'
+            ? 'dept:'.($user->department_id ?? -1)
+            : 'all';
+
+        $key = 'academic-records:list:'.md5(json_encode([$request->all(), $scope]));
+
         try {
-            $result = (new AcademicRecordRepository)->search($filters, $page, $perPage);
+            $payload = CacheService::remember($key, 300, function () use ($filters, $page, $perPage): array {
+                $result = (new AcademicRecordRepository)->search($filters, $page, $perPage);
 
-            $items = $result['items']
-                ->map(fn ($record) => (new AcademicRecordResource($record))->resolve())
-                ->values()
-                ->all();
+                $items = $result['items']
+                    ->map(fn ($record) => (new AcademicRecordResource($record))->resolve())
+                    ->values()
+                    ->all();
 
-            return self::success('Academic records retrieved successfully.', [
-                'items' => $items,
-                'page' => $result['page'],
-                'per_page' => $result['per_page'],
-                'total' => $result['total'],
-                'total_pages' => $result['total_pages'],
-            ]);
+                return [
+                    'items' => $items,
+                    'page' => $result['page'],
+                    'per_page' => $result['per_page'],
+                    'total' => $result['total'],
+                    'total_pages' => $result['total_pages'],
+                ];
+            });
+
+            return self::success('Academic records retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to retrieve academic records.');
         }

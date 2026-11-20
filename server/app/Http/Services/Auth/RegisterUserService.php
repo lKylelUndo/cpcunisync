@@ -5,6 +5,7 @@ namespace App\Http\Services\Auth;
 use App\Http\Repository\UserRepository;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Services\Audit\AuditService;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Throwable;
@@ -45,6 +46,8 @@ final class RegisterUserService
                 'role' => $user->role,
                 'status' => $user->status,
             ], null, $request->ip());
+
+            CacheService::invalidate();
 
             return self::success(
                 'Registration submitted. An administrator will verify your account before you can log in.',

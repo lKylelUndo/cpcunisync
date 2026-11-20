@@ -3,6 +3,7 @@
 namespace App\Http\Services\Report;
 
 use App\Http\Repository\ReportRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,72 +16,80 @@ final class AcademicSummaryReportService
 
     public static function AcademicSummaryReport(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $departmentId = $user !== null && $user->role === 'department_head'
+            ? ($user->department_id ?? -1)
+            : null;
+
+        $scope = $user !== null && $user->role === 'department_head'
+            ? 'dept:'.($user->department_id ?? -1)
+            : 'all';
+
         try {
-            $user = $request->user();
-            $departmentId = $user !== null && $user->role === 'department_head'
-                ? ($user->department_id ?? -1)
-                : null;
+            $payload = CacheService::remember('reports:academic-summary:'.$scope, 300, function () use ($departmentId): array {
+                $records = (new ReportRepository)->academicRecordsWithStudentContext($departmentId);
 
-            $records = (new ReportRepository)->academicRecordsWithStudentContext($departmentId);
+                $recorded = $records->count();
+                $passed = $records->where('remarks', 'passed')->count();
+                $failed = $records->where('remarks', 'failed')->count();
+                $incomplete = $records->where('remarks', 'incomplete')->count();
+                $ongoing = $records->where('remarks', 'ongoing')->count();
 
-            $recorded = $records->count();
-            $passed = $records->where('remarks', 'passed')->count();
-            $failed = $records->where('remarks', 'failed')->count();
-            $incomplete = $records->where('remarks', 'incomplete')->count();
-            $ongoing = $records->where('remarks', 'ongoing')->count();
+                $byProgram = $records
+                    ->filter(fn ($record) => $record->student?->program !== null)
+                    ->groupBy(fn ($record) => $record->student->program_id)
+                    ->map(function ($group): array {
+                        $program = $group->first()->student->program;
+                        $graded = $group->filter(fn ($record) => $record->grade !== null);
 
-            $byProgram = $records
-                ->filter(fn ($record) => $record->student?->program !== null)
-                ->groupBy(fn ($record) => $record->student->program_id)
-                ->map(function ($group): array {
-                    $program = $group->first()->student->program;
-                    $graded = $group->filter(fn ($record) => $record->grade !== null);
+                        return [
+                            'code' => $program->code,
+                            'name' => $program->name,
+                            'average_grade' => $graded->isEmpty()
+                                ? null
+                                : round((float) $graded->avg('grade'), 2),
+                            'passed' => $group->where('remarks', 'passed')->count(),
+                            'failed' => $group->where('remarks', 'failed')->count(),
+                            'total' => $group->count(),
+                        ];
+                    })
+                    ->sortBy('name')
+                    ->values()
+                    ->all();
 
-                    return [
-                        'code' => $program->code,
-                        'name' => $program->name,
-                        'average_grade' => $graded->isEmpty()
-                            ? null
-                            : round((float) $graded->avg('grade'), 2),
-                        'passed' => $group->where('remarks', 'passed')->count(),
-                        'failed' => $group->where('remarks', 'failed')->count(),
-                        'total' => $group->count(),
-                    ];
-                })
-                ->sortBy('name')
-                ->values()
-                ->all();
+                $byYearLevel = $records
+                    ->filter(fn ($record) => $record->student !== null)
+                    ->groupBy(fn ($record) => (int) $record->student->year_level)
+                    ->map(function ($group, $yearLevel): array {
+                        $graded = $group->filter(fn ($record) => $record->grade !== null);
 
-            $byYearLevel = $records
-                ->filter(fn ($record) => $record->student !== null)
-                ->groupBy(fn ($record) => (int) $record->student->year_level)
-                ->map(function ($group, $yearLevel): array {
-                    $graded = $group->filter(fn ($record) => $record->grade !== null);
+                        return [
+                            'year_level' => (int) $yearLevel,
+                            'average_grade' => $graded->isEmpty()
+                                ? null
+                                : round((float) $graded->avg('grade'), 2),
+                            'total' => $group->count(),
+                        ];
+                    })
+                    ->sortBy('year_level')
+                    ->values()
+                    ->all();
 
-                    return [
-                        'year_level' => (int) $yearLevel,
-                        'average_grade' => $graded->isEmpty()
-                            ? null
-                            : round((float) $graded->avg('grade'), 2),
-                        'total' => $group->count(),
-                    ];
-                })
-                ->sortBy('year_level')
-                ->values()
-                ->all();
+                return [
+                    'overall' => [
+                        'recorded' => $recorded,
+                        'passed' => $passed,
+                        'failed' => $failed,
+                        'incomplete' => $incomplete,
+                        'ongoing' => $ongoing,
+                        'pass_rate' => $recorded === 0 ? 0.0 : round(($passed / $recorded) * 100, 2),
+                    ],
+                    'by_program' => $byProgram,
+                    'by_year_level' => $byYearLevel,
+                ];
+            });
 
-            return self::success('Academic summary retrieved successfully.', [
-                'overall' => [
-                    'recorded' => $recorded,
-                    'passed' => $passed,
-                    'failed' => $failed,
-                    'incomplete' => $incomplete,
-                    'ongoing' => $ongoing,
-                    'pass_rate' => $recorded === 0 ? 0.0 : round(($passed / $recorded) * 100, 2),
-                ],
-                'by_program' => $byProgram,
-                'by_year_level' => $byYearLevel,
-            ]);
+            return self::success('Academic summary retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to generate the academic summary.');
         }

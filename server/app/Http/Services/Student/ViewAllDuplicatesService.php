@@ -3,6 +3,7 @@
 namespace App\Http\Services\Student;
 
 use App\Http\Repository\StudentRepository;
+use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Resources\StudentResource;
 use Illuminate\Http\JsonResponse;
@@ -16,25 +17,35 @@ final class ViewAllDuplicatesService
 
     public static function ViewAllDuplicates(Request $request): JsonResponse
     {
+        $user = $request->user();
+
+        $scope = $user !== null && $user->role === 'department_head'
+            ? 'dept:'.($user->department_id ?? -1)
+            : 'all';
+
         try {
-            $students = (new StudentRepository)->duplicateSuspects();
+            $payload = CacheService::remember('duplicates:list:'.$scope, 300, function (): array {
+                $students = (new StudentRepository)->duplicateSuspects();
 
-            $groups = $students
-                ->filter(fn ($duplicate) => $duplicate->duplicateOf !== null)
-                ->map(function ($duplicate): array {
-                    return [
-                        'duplicate' => (new StudentResource($duplicate))->resolve(),
-                        'primary' => (new StudentResource($duplicate->duplicateOf))->resolve(),
-                        'match_reason' => DuplicateDetectionService::MatchReasonBetween(
-                            $duplicate,
-                            $duplicate->duplicateOf,
-                        ),
-                    ];
-                })
-                ->values()
-                ->all();
+                $groups = $students
+                    ->filter(fn ($duplicate) => $duplicate->duplicateOf !== null)
+                    ->map(function ($duplicate): array {
+                        return [
+                            'duplicate' => (new StudentResource($duplicate))->resolve(),
+                            'primary' => (new StudentResource($duplicate->duplicateOf))->resolve(),
+                            'match_reason' => DuplicateDetectionService::MatchReasonBetween(
+                                $duplicate,
+                                $duplicate->duplicateOf,
+                            ),
+                        ];
+                    })
+                    ->values()
+                    ->all();
 
-            return self::success('Duplicate suspects retrieved successfully.', ['groups' => $groups]);
+                return ['groups' => $groups];
+            });
+
+            return self::success('Duplicate suspects retrieved successfully.', $payload);
         } catch (Throwable) {
             return self::error('Unable to retrieve duplicates.');
         }
