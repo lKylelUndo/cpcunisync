@@ -255,8 +255,10 @@ export function ImportStudentsDialog({
               <p className="text-xs text-muted-foreground">
                 Total rows: {preview.totalRows}
               </p>
-              <div className="max-h-64 overflow-y-auto rounded-md border">
-                <Table>
+              <div className="w-full max-h-64 max-w-full overflow-x-auto overflow-y-auto rounded-md border">
+                <Table
+                  style={{ minWidth: `${preview.header.length * 56 + 16}px` }}
+                >
                   <TableHeader>
                     <TableRow>
                       {preview.header.map((cell, index) => (
@@ -268,7 +270,7 @@ export function ImportStudentsDialog({
                     {preview.body.map((row, rowIndex) => (
                       <TableRow key={rowIndex}>
                         {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex}>
+                          <TableCell key={cellIndex} title={cell || undefined}>
                             {cell || "\u2014"}
                           </TableCell>
                         ))}
@@ -280,6 +282,11 @@ export function ImportStudentsDialog({
               {preview.body.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   No data rows found.
+                </p>
+              ) : null}
+              {preview.header.length > 6 ? (
+                <p className="text-xs text-muted-foreground">
+                  Scroll sideways to see all columns.
                 </p>
               ) : null}
             </div>

@@ -24,6 +24,11 @@ class DepartmentRepository
         return Department::query()->where('code', strtoupper(trim($code)))->first();
     }
 
+    public function findById(int $id): ?Department
+    {
+        return Department::query()->find($id);
+    }
+
     /**
      * @return Collection<int, Department>
      */

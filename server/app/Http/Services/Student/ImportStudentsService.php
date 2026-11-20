@@ -2,12 +2,14 @@
 
 namespace App\Http\Services\Student;
 
-use App\Http\Repository\StudentRepository;
+use App\Http\Repository\DepartmentRepository;
 use App\Http\Requests\Student\ImportStudentsRequest;
 use App\Http\Services\Audit\AuditService;
 use App\Http\Services\Cache\CacheService;
 use App\Http\Services\Concerns\ApiResponses;
 use App\Http\Services\Sync\EtlService;
+use App\Http\Services\Sync\RunSyncService;
+use App\Models\SourceRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -16,10 +18,8 @@ use Throwable;
 /**
  * Bulk-imports students from a CSV upload.
  *
- * Each row is normalized through the ETL pipeline (EtlService::Transform)
- * and reconciled with the same rules the sync runs use: rows matching an
- * existing student number update or skip; unknown students are created,
- * with likely duplicates flagged as duplicate_suspect instead of merged.
+ * Rows are validated and persisted as source records in the central MySQL
+ * database; a per-source ETL run then loads or updates the students.
  */
 final class ImportStudentsService
 {
@@ -40,6 +40,7 @@ final class ImportStudentsService
             'duplicates' => 0,
             'failed' => 0,
             'errors' => [],
+            'sync_runs' => [],
         ];
     }
 
@@ -55,7 +56,7 @@ final class ImportStudentsService
             return self::error('The uploaded file could not be read.');
         }
 
-        $studentRepository = new StudentRepository;
+        $queuedKeys = [];
 
         try {
             $header = fgetcsv($handle);
@@ -110,39 +111,26 @@ final class ImportStudentsService
                         continue;
                     }
 
-                    $existing = $studentRepository->findByStudentNumber($prepared['student_number']);
+                    $sourceKey = self::sourceKeyForDepartment($prepared['department_id']);
 
-                    if ($existing !== null) {
-                        $changes = EtlService::ChangedValues($existing, $prepared);
-
-                        if ($changes === []) {
-                            $summary['skipped']++;
-                        } else {
-                            $studentRepository->update($existing, $changes);
-                            $summary['updated']++;
-                        }
+                    if ($sourceKey === null) {
+                        $summary['failed']++;
+                        $summary['errors'][] = [
+                            'row' => $rowNumber,
+                            'identifier' => $identifier,
+                            'message' => 'The department source could not be determined for this row.',
+                            'raw_row' => $row,
+                        ];
 
                         continue;
                     }
 
-                    $candidate = DuplicateDetectionService::FindCandidates($prepared);
+                    SourceRecord::updateOrCreate(
+                        ['source_key' => $sourceKey, 'student_number' => $prepared['student_number']],
+                        ['payload' => $payload],
+                    );
 
-                    if ($candidate !== null) {
-                        $studentRepository->create([
-                            ...$prepared,
-                            'integrity_status' => 'duplicate_suspect',
-                            'duplicate_of_id' => $candidate['student']->id,
-                        ]);
-                        $summary['created']++;
-                        $summary['duplicates']++;
-                    } else {
-                        $studentRepository->create([
-                            ...$prepared,
-                            'integrity_status' => 'clean',
-                            'duplicate_of_id' => null,
-                        ]);
-                        $summary['created']++;
-                    }
+                    $queuedKeys[$sourceKey] = true;
                 } catch (Throwable $exception) {
                     $summary['failed']++;
                     $summary['errors'][] = [
@@ -157,16 +145,33 @@ final class ImportStudentsService
             fclose($handle);
         }
 
+        foreach (array_keys($queuedKeys) as $sourceKey) {
+            $response = RunSyncService::RunSync(['department_code' => $sourceKey, 'method' => 'etl']);
+            $run = ($response->getData(true)['data'] ?? null);
+
+            if (! is_array($run)) {
+                continue;
+            }
+
+            $summary['created'] += (int) ($run['loaded'] ?? 0);
+            $summary['updated'] += (int) ($run['updated'] ?? 0);
+            $summary['skipped'] += (int) ($run['skipped'] ?? 0);
+            $summary['duplicates'] += (int) ($run['duplicates'] ?? 0);
+            $summary['failed'] += (int) ($run['failed'] ?? 0);
+
+            if (($run['id'] ?? null) !== null) {
+                $summary['sync_runs'][] = $run['id'];
+            }
+        }
+
         if ($summary['total'] === 0) {
             throw ValidationException::withMessages(['file' => 'CSV contains no student rows.']);
         }
 
         $message = sprintf(
-            'Student import completed: %d total, %d created, %d updated, %d skipped, %d duplicates, %d failed.',
+            '%d rows queued, %d loaded by ETL, %d flagged, %d failed.',
             $summary['total'],
             $summary['created'],
-            $summary['updated'],
-            $summary['skipped'],
             $summary['duplicates'],
             $summary['failed'],
         );
@@ -176,6 +181,23 @@ final class ImportStudentsService
         CacheService::invalidate();
 
         return self::success($message, $summary);
+    }
+
+    /**
+     * Map the department of a transformed CSV row to its source key.
+     */
+    private static function sourceKeyForDepartment(?int $departmentId): ?string
+    {
+        $department = $departmentId !== null
+            ? (new DepartmentRepository)->findById($departmentId)
+            : null;
+
+        return match ($department?->code) {
+            'COE' => 'education',
+            'CIT' => 'it',
+            'CHM' => 'hospitality',
+            default => null,
+        };
     }
 
     private static function stripBom(string $value): string

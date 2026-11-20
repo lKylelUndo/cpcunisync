@@ -12,7 +12,7 @@ CPC UniSync implements this case around its central challenge — **siloed acade
 
 | Lesson source | In this project | Status |
 | --- | --- | --- |
-| **SIS** | Three simulated departmental SIS exports — `education.json` (COE), `it.json` (CIT), `hospitality.json` (CHM) — with deliberately inconsistent casing, dates, phones, program codes and duplicates; plus the central `students` / `enrollments` / `academic_records` tables and a registrar CSV bulk-upload path | ✅ Applied (the core of the project) |
+| **SIS** | Three simulated departmental SIS exports — `education.json` (COE), `it.json` (CIT), `hospitality.json` (CHM) — with deliberately inconsistent casing, dates, phones, program codes and duplicates, plus registrar CSV uploads persisted as source records; the central `students` / `enrollments` / `academic_records` tables hold the loaded result | ✅ Applied (the core of the project) |
 | **HR** | Staff accounts: admin / registrar / department heads, self-registration with role + department, admin verification/suspension/deletion, audit attribution by user | ⚠️ Partial — staff identity only, no payroll/HR module |
 | **LMS** | — | ❌ Not implemented (no learning-activity source) |
 | **Library** | — | ❌ Not implemented |
@@ -50,7 +50,7 @@ CPC UniSync implements this case around its central challenge — **siloed acade
 - **Data-quality queue** — grouped duplicate suspects with match reasons, merge/dismiss actions and audit entries
 - **Governance evidence** — staff verification workflow, audit trail with readable change diffs, department-scoped access
 - **Analytics** — three reports + dashboard aggregates, refreshed from cached reads with write invalidation
-- **Bulk onboarding** — CSV template + import with column validation and per-row error reporting
+- **Bulk onboarding** — CSV template + column validation; uploaded rows are persisted as source data and loaded by an automatic ETL run, with per-row error reporting
 
 ## Boundary summary
 

@@ -2,10 +2,11 @@
 
 namespace App\Http\Repository;
 
+use App\Models\SourceRecord;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
 
-/** Reads local JSON source files. */
+/** Reads local JSON source files, merging in persisted source rows. */
 class SourceRepository
 {
     public const KEYS = ['education', 'it', 'hospitality'];
@@ -27,6 +28,21 @@ class SourceRepository
         if (! is_array($payload)) {
             throw new RuntimeException('The source file contains invalid JSON.');
         }
+
+        $records = $payload['records'] ?? [];
+
+        if (! is_array($records)) {
+            $records = [];
+        }
+
+        $payload['records'] = array_merge(
+            $records,
+            SourceRecord::where('source_key', $key)
+                ->orderBy('id')
+                ->get()
+                ->pluck('payload')
+                ->all(),
+        );
 
         return $payload;
     }

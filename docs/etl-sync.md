@@ -67,6 +67,16 @@ Counters are written to `sync_runs`: `extracted`, `loaded`, `updated`, `skipped`
 
 `finished_at` and a human-readable message are set, the cache is invalidated, and the result is returned to the Integrations page. A full run across all three sources typically reports **36 extracted / 32 loaded / 4 duplicates / 0 failed** — the 4 are the intentionally duplicated source rows awaiting review.
 
+## Where uploaded CSV rows go
+
+The registrar's **CSV upload** does not write directly to the student table. Valid rows are saved as source records in the `source_records` table (MySQL, so they survive Render redeploys) and `SourceRepository::readFile()` appends them to the selected department's dataset. An ETL run is then started automatically, so:
+
+- uploads show up as real `loaded` / `duplicates` counts in the Integrations history;
+- the public source endpoint `GET /api/sources/{key}` also includes uploaded rows;
+- re-uploading the same file updates the existing source row (unique `source_key` + `student_number`) and ETL skips identical students — no duplicate clutter.
+
+The import dialog's summary counts come from the ETL run(s) it triggered (`created` = loaded, `duplicates` = flagged suspects), with per-row CSV validation errors listed separately.
+
 ## Where to inspect a run
 
 - **Integrations** page — history, counters, filters by department/status/method, and "View run details"
