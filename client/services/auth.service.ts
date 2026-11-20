@@ -26,15 +26,8 @@ export const registerSchema = z
       .min(1, "Email is required.")
       .email("Enter a valid email address."),
     password: z.string().min(8, "Password must be at least 8 characters."),
-    password_confirmation: z
-      .string()
-      .min(8, "Confirm your password."),
     role: z.enum(["registrar", "department_head"]),
     department_id: z.number().int().positive().optional().nullable(),
-  })
-  .refine((data) => data.password === data.password_confirmation, {
-    path: ["password_confirmation"],
-    message: "Passwords do not match",
   })
   .refine(
     (data) =>

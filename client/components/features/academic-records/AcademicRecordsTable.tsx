@@ -1,12 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+  EyeIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  Trash2Icon,
+} from "lucide-react";
 
 import { StatusBadge } from "@/components/features/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { workspacePath } from "@/lib/workspace";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -99,39 +110,50 @@ export function AcademicRecordsTable({
                 )}
               </TableCell>
               <TableCell>
-                <div className="flex justify-end gap-1">
-                  <Button asChild variant="ghost" size="icon-sm">
-                    <Link
-                  href={workspacePath(
-                    user,
-                    `/students/${record.student_id}`,
-                  )}
-                      aria-label="View student"
-                    >
-                      <EyeIcon />
-                    </Link>
-                  </Button>
-                  {canWrite ? (
-                    <>
+                <div className="flex justify-end">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
+                        type="button"
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => onEdit(record)}
-                        aria-label="Edit academic record"
+                        aria-label={`Open actions for ${
+                          record.student?.full_name ??
+                          `Student #${record.student_id}`
+                        }`}
                       >
-                        <PencilIcon />
+                        <MoreHorizontalIcon />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => onDelete(record)}
-                        aria-label="Delete academic record"
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2Icon />
-                      </Button>
-                    </>
-                  ) : null}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={workspacePath(
+                            user,
+                            `/students/${record.student_id}`,
+                          )}
+                        >
+                          <EyeIcon />
+                          View details
+                        </Link>
+                      </DropdownMenuItem>
+                      {canWrite ? (
+                        <>
+                          <DropdownMenuItem onSelect={() => onEdit(record)}>
+                            <PencilIcon />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onSelect={() => onDelete(record)}
+                          >
+                            <Trash2Icon />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </TableCell>
             </TableRow>

@@ -23,7 +23,7 @@ final class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', 'in:registrar,department_head'],
             'department_id' => [
                 'required_if:role,department_head',

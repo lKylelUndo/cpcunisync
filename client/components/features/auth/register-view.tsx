@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
+  EyeIcon,
+  EyeOffIcon,
   Loader2Icon,
   UserPlusIcon,
 } from "lucide-react";
@@ -53,7 +55,6 @@ const REGISTER_FIELDS: (keyof RegisterInput)[] = [
   "name",
   "email",
   "password",
-  "password_confirmation",
   "role",
   "department_id",
 ];
@@ -63,6 +64,7 @@ export function RegisterView() {
   const [submitted, setSubmitted] = useState(false);
   const [options, setOptions] = useState<RegistrationOptions | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   // Cache Components keeps this page alive via <Activity> when navigating
   // away, so a successful submission would re-show the stale success card on
   // the next visit. `shouldReset` gates the reset to successful submits only,
@@ -80,14 +82,13 @@ export function RegisterView() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema) as Resolver<RegisterInput>,
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      password_confirmation: "",
-      role: "registrar",
-      department_id: null,
-    },
+      defaultValues: {
+        name: "",
+        email: "",
+        password: "",
+        role: "registrar",
+        department_id: null,
+      },
   });
 
   const role = watch("role");
@@ -260,14 +261,15 @@ export function RegisterView() {
                   ) : null}
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Password</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="register-password">Password</Label>
+                  <div className="relative">
                     <Input
                       id="register-password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
                       placeholder="At least 8 characters"
+                      className="pr-10"
                       aria-invalid={Boolean(errors.password)}
                       aria-describedby={
                         errors.password
@@ -276,42 +278,27 @@ export function RegisterView() {
                       }
                       {...register("password")}
                     />
-                    {errors.password ? (
-                      <p
-                        id="register-password-error"
-                        className="text-xs text-destructive"
-                      >
-                        {errors.password.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="register-confirmation">
-                      Confirm password
-                    </Label>
-                    <Input
-                      id="register-confirmation"
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="Repeat password"
-                      aria-invalid={Boolean(errors.password_confirmation)}
-                      aria-describedby={
-                        errors.password_confirmation
-                          ? "register-confirmation-error"
-                          : undefined
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
+                      onClick={() => setShowPassword((current) => !current)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
                       }
-                      {...register("password_confirmation")}
-                    />
-                    {errors.password_confirmation ? (
-                      <p
-                        id="register-confirmation-error"
-                        className="text-xs text-destructive"
-                      >
-                        {errors.password_confirmation.message}
-                      </p>
-                    ) : null}
+                    >
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </Button>
                   </div>
+                  {errors.password ? (
+                    <p
+                      id="register-password-error"
+                      className="text-xs text-destructive"
+                    >
+                      {errors.password.message}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
