@@ -37,6 +37,29 @@ interface ImportPreview {
 
 const PREVIEW_ROW_LIMIT = 5;
 
+/** The six main columns shown in the preview table; the rest are not previewed. */
+const PREVIEW_COLUMNS = new Set<string>([
+  "student_number",
+  "first_name",
+  "last_name",
+  "sex",
+  "birth_date",
+  "program_code",
+]);
+
+/** Indexes of the preview columns present in the CSV header (at most the six main fields). */
+function getPreviewColumnIndexes(header: string[]): number[] {
+  const indexes = header
+    .map((column, index) =>
+      PREVIEW_COLUMNS.has(column.trim().toLowerCase()) ? index : -1,
+    )
+    .filter((index) => index !== -1);
+
+  return indexes.length > 0
+    ? indexes
+    : header.slice(0, 6).map((_, index) => index);
+}
+
 /** Small hand-rolled CSV parser: handles quoted commas and a BOM. */
 function parseCsv(text: string): string[][] {
   const normalized = text.replace(/^\uFEFF/, "");
@@ -214,6 +237,10 @@ export function ImportStudentsDialog({
     onImported();
   };
 
+  const tableColumnIndexes = preview
+    ? getPreviewColumnIndexes(preview.header)
+    : [];
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -255,23 +282,27 @@ export function ImportStudentsDialog({
               <p className="text-xs text-muted-foreground">
                 Total rows: {preview.totalRows}
               </p>
-              <div className="w-full max-h-64 max-w-full overflow-x-auto overflow-y-auto rounded-md border">
-                <Table
-                  style={{ minWidth: `${preview.header.length * 56 + 16}px` }}
-                >
+              <div className="w-full rounded-md border">
+                <Table className="table-fixed">
                   <TableHeader>
                     <TableRow>
-                      {preview.header.map((cell, index) => (
-                        <TableHead key={index}>{cell || "\u2014"}</TableHead>
+                      {tableColumnIndexes.map((index) => (
+                        <TableHead key={index}>
+                          {preview.header[index] || "\u2014"}
+                        </TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {preview.body.map((row, rowIndex) => (
                       <TableRow key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex} title={cell || undefined}>
-                            {cell || "\u2014"}
+                        {tableColumnIndexes.map((index) => (
+                          <TableCell
+                            key={index}
+                            className="truncate"
+                            title={row[index] || undefined}
+                          >
+                            {row[index] || "\u2014"}
                           </TableCell>
                         ))}
                       </TableRow>
@@ -284,9 +315,10 @@ export function ImportStudentsDialog({
                   No data rows found.
                 </p>
               ) : null}
-              {preview.header.length > 6 ? (
+              {preview.header.length > tableColumnIndexes.length ? (
                 <p className="text-xs text-muted-foreground">
-                  Scroll sideways to see all columns.
+                  All columns in the CSV are imported — the preview shows the
+                  six main fields (see the template for the full list).
                 </p>
               ) : null}
             </div>
