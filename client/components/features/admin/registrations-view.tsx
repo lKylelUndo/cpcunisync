@@ -52,7 +52,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { apiErrorMessage } from "@/lib/api-errors";
-import { formatDateTimeValue } from "@/lib/format";
+import {
+  formatDateTimeValue,
+  formatDateValue,
+} from "@/lib/format";
 import {
   adminRegistrationService,
   type AdminRegistration,
@@ -365,54 +368,76 @@ export function RegistrationsView() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
+                    <TableHead className="w-32">Role</TableHead>
                     <TableHead>Department</TableHead>
-                    <TableHead>Registered</TableHead>
                     <TableHead>Status</TableHead>
                     {isAdmin ? (
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="sticky right-0 z-10 bg-card text-right">
+                        Actions
+                      </TableHead>
                     ) : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {registrations.items.map((registration) => (
                     <TableRow key={registration.id}>
-                      <TableCell>
-                        <span className="block max-w-48 truncate font-medium">
+                      <TableCell className="max-w-44">
+                        <span
+                          className="block truncate font-medium"
+                          title={registration.name}
+                        >
                           {registration.name}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <span className="block max-w-56 truncate text-sm text-muted-foreground">
+                      <TableCell className="max-w-40">
+                        <span
+                          className="block truncate text-sm text-muted-foreground"
+                          title={registration.email}
+                        >
                           {registration.email}
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="w-32">
                         <Badge variant="outline">
                           {roleLabel(registration.role)}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {registration.department
-                          ? `${registration.department.code} · ${registration.department.name}`
-                          : "—"}
+                      <TableCell className="max-w-36">
+                        <span
+                          className="block truncate"
+                          title={
+                            registration.department
+                              ? `${registration.department.code} · ${registration.department.name}`
+                              : "—"
+                          }
+                        >
+                          {registration.department
+                            ? `${registration.department.code} · ${registration.department.name}`
+                            : "—"}
+                        </span>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {formatDateTimeValue(registration.registered_at)}
-                      </TableCell>
-                      <TableCell className="max-w-64 whitespace-normal">
+                      <TableCell className="max-w-40">
                         <StatusBadge status={registration.status} />
+                        <p
+                          className="mt-1 truncate text-xs text-muted-foreground"
+                          title={formatDateTimeValue(registration.registered_at)}
+                        >
+                          Registered{" "}
+                          {formatDateValue(registration.registered_at)}
+                        </p>
                         {registration.status === "verified" &&
                         registration.verified_at ? (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Verified{" "}
-                            {formatDateTimeValue(registration.verified_at)}
+                          <p
+                            className="mt-1 truncate text-xs text-muted-foreground"
+                            title={formatDateTimeValue(registration.verified_at)}
+                          >
+                            Verified {formatDateValue(registration.verified_at)}
                           </p>
                         ) : null}
                         {registration.status === "rejected" &&
                         registration.verification_note ? (
                           <p
-                            className="mt-1 max-w-56 text-xs text-muted-foreground"
+                            className="mt-1 truncate text-xs text-muted-foreground"
                             title={registration.verification_note}
                           >
                             Reason: {registration.verification_note}
@@ -420,7 +445,7 @@ export function RegistrationsView() {
                         ) : null}
                       </TableCell>
                       {isAdmin ? (
-                        <TableCell>
+                        <TableCell className="sticky right-0 z-10 bg-card">
                           <div className="flex items-center justify-end">
                             {registration.status === "rejected" ? (
                               <span className="text-xs text-muted-foreground">
