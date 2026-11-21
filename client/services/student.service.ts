@@ -122,6 +122,10 @@ export interface DuplicateGroup {
 
 export interface DuplicateGroupsData {
   groups: DuplicateGroup[];
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
 }
 
 export interface ImportRowError {
@@ -184,10 +188,13 @@ export const studentService = {
       )
     ).data,
 
-  getDuplicates: async (): Promise<ApiEnvelope<DuplicateGroupsData>> =>
+  getDuplicates: async (
+    { page, per_page }: { page?: number; per_page?: number } = {},
+  ): Promise<ApiEnvelope<DuplicateGroupsData>> =>
     (
       await axiosInstance.get<ApiEnvelope<DuplicateGroupsData>>(
         "/api/students/v1/duplicates",
+        { params: { page, per_page } },
       )
     ).data,
 

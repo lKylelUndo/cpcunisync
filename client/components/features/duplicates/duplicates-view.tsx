@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/features/admin/AdminPageHeader";
 import { EmptyState } from "@/components/features/shared/EmptyState";
+import { Pagination } from "@/components/features/shared/Pagination";
 import { StatusBadge } from "@/components/features/shared/StatusBadge";
 import {
   AlertDialog,
@@ -42,6 +43,7 @@ import { workspacePath } from "@/lib/workspace";
 import {
   studentService,
   type DuplicateGroup,
+  type DuplicateGroupsData,
   type DuplicateMatchReason,
   type Student,
 } from "@/services/student.service";
@@ -126,27 +128,44 @@ export function DuplicatesView() {
     null,
   );
   const [isWorking, setIsWorking] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [perPage, setPerPage] = useState(10);
 
-  const loadGroups = useCallback(async () => {
-    setIsLoading(true);
+  const loadGroups = useCallback(
+    async (targetPage: number): Promise<DuplicateGroupsData | null> => {
+      setIsLoading(true);
 
-    try {
-      const response = await studentService.getDuplicates();
+      try {
+        const response = await studentService.getDuplicates({
+          page: targetPage,
+        });
 
-      if (response.status === "success" && response.data) {
-        setGroups(response.data.groups);
-      } else {
+        if (response.status === "success" && response.data) {
+          setGroups(response.data.groups);
+          setPage(response.data.page);
+          setTotalPages(response.data.total_pages);
+          setTotal(response.data.total);
+          setPerPage(response.data.per_page);
+
+          return response.data;
+        }
+
         toast.error(response.message);
+        return null;
+      } catch (error) {
+        toast.error(apiErrorMessage(error));
+        return null;
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      toast.error(apiErrorMessage(error));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    void loadGroups();
+    void loadGroups(1);
   }, [loadGroups]);
 
   const confirmAction = async () => {
@@ -170,7 +189,11 @@ export function DuplicatesView() {
       if (response.status === "success") {
         toast.success(response.message);
         setPendingAction(null);
-        await loadGroups();
+
+        const refreshed = await loadGroups(page);
+        if (refreshed && refreshed.groups.length === 0) {
+          await loadGroups(Math.max(1, refreshed.page - 1));
+        }
       } else {
         toast.error(response.message);
       }
@@ -189,7 +212,7 @@ export function DuplicatesView() {
         actions={
           <Button
             variant="outline"
-            onClick={() => void loadGroups()}
+            onClick={() => void loadGroups(page)}
             disabled={isLoading}
           >
             <RefreshCwIcon className={isLoading ? "animate-spin" : undefined} />
@@ -290,13 +313,24 @@ export function DuplicatesView() {
             title="Duplicates could not be loaded"
             description="Check the API connection and try again."
             action={
-              <Button variant="outline" onClick={() => void loadGroups()}>
+              <Button variant="outline" onClick={() => void loadGroups(page)}>
                 Retry
               </Button>
             }
           />
         </Card>
       )}
+
+      {groups ? (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          perPage={perPage}
+          onPageChange={(next) => void loadGroups(next)}
+          disabled={isLoading}
+        />
+      ) : null}
 
       <AlertDialog
         open={Boolean(pendingAction)}

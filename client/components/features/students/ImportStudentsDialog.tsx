@@ -243,8 +243,8 @@ export function ImportStudentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
+        <DialogContent className="flex max-h-[calc(100vh-2rem)] flex-col sm:max-w-2xl">
+          <DialogHeader className="shrink-0">
           <DialogTitle>Import students</DialogTitle>
           <DialogDescription>
             One row = one student. Duplicates (an existing student number,
@@ -252,7 +252,7 @@ export function ImportStudentsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
           <Button
             type="button"
             variant="outline"
@@ -368,7 +368,7 @@ export function ImportStudentsDialog({
           ) : null}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button
             type="button"
             variant="outline"
