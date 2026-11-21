@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { AdminPageHeader } from "@/components/features/admin/AdminPageHeader";
 import { EmptyState } from "@/components/features/shared/EmptyState";
+import { TableSkeleton } from "@/components/features/shared/page-skeletons";
 import { Pagination } from "@/components/features/shared/Pagination";
 import { StatusBadge } from "@/components/features/shared/StatusBadge";
 import {
@@ -28,14 +29,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 import { apiErrorMessage } from "@/lib/api-errors";
 import { formatDateValue } from "@/lib/format";
@@ -59,63 +61,41 @@ interface PendingAction {
   group: DuplicateGroup;
 }
 
-function StudentMiniCard({
-  student,
-  role,
-}: {
-  student: Student;
-  role: "primary" | "duplicate";
-}) {
+function studentDetailTitle(student: Student): string {
+  return [
+    `#${student.id}`,
+    student.student_number,
+    student.program?.code,
+    student.department?.code,
+    student.email ? `Email: ${student.email}` : undefined,
+    student.birth_date
+      ? `Birth date: ${formatDateValue(student.birth_date)}`
+      : undefined,
+    `Year level: ${student.year_level}`,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(" · ");
+}
+
+function TableStudentCell({ student }: { student: Student }) {
   const { user } = useAuth();
 
   return (
-    <div
-      className={
-        role === "primary"
-          ? "rounded-lg border bg-muted/30 p-4"
-          : "rounded-lg border border-amber-200 bg-amber-50/50 p-4"
-      }
-    >
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        <Badge variant={role === "primary" ? "secondary" : "outline"}>
-          {role === "primary" ? "Primary record" : "Duplicate suspect"}
-        </Badge>
-        <StatusBadge status={student.status} />
-      </div>
+    <div className="min-w-0">
       <Link
         href={workspacePath(user, `/students/${student.id}`)}
         className="font-medium hover:underline"
       >
         {student.full_name}
       </Link>
-      <p className="text-sm text-muted-foreground">
+      <p
+        className="mt-0.5 truncate text-xs text-muted-foreground"
+        title={studentDetailTitle(student)}
+      >
         {student.student_number}
         {student.program ? ` · ${student.program.code}` : ""}
         {student.department ? ` · ${student.department.code}` : ""}
       </p>
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-        <div>
-          <dt className="text-muted-foreground">Email</dt>
-          <dd className="truncate">{student.email ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Birth date</dt>
-          <dd>{formatDateValue(student.birth_date)}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Year level</dt>
-          <dd>Year {student.year_level}</dd>
-        </div>
-        <div>
-          <dt className="text-muted-foreground">Record ID</dt>
-          <dd>#{student.id}</dd>
-        </div>
-      </dl>
-      <Button asChild variant="outline" size="sm" className="mt-3">
-        <Link href={workspacePath(user, `/students/${student.id}`)}>
-          Open student record
-        </Link>
-      </Button>
     </div>
   );
 }
@@ -231,72 +211,70 @@ export function DuplicatesView() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 xl:grid-cols-2">
-          {Array.from({ length: 2 }).map((_, index) => (
-            <Card key={index} className="p-6">
-              <Skeleton className="mb-4 h-6 w-48" />
-              <div className="grid gap-4 md:grid-cols-2">
-                <Skeleton className="h-44 w-full" />
-                <Skeleton className="h-44 w-full" />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <TableSkeleton />
       ) : groups && groups.length > 0 ? (
-        <div className="grid gap-4 xl:grid-cols-2">
-          {groups.map((group) => (
-            <Card key={group.duplicate.id}>
-              <CardHeader>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <UsersIcon className="size-4 text-muted-foreground" />
-                      {group.duplicate.full_name}
-                    </CardTitle>
-                    <CardDescription>
-                      Matched with {group.primary.full_name} by{" "}
+        <div className="space-y-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Suspect</TableHead>
+                <TableHead>Primary record</TableHead>
+                <TableHead>Match reason</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {groups.map((group) => (
+                <TableRow key={group.duplicate.id}>
+                  <TableCell>
+                    <TableStudentCell student={group.duplicate} />
+                  </TableCell>
+                  <TableCell>
+                    <TableStudentCell student={group.primary} />
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
                       {MATCH_REASON_LABELS[group.match_reason] ??
                         group.match_reason}
-                      .
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline">Duplicate</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-2">
-                  <StudentMiniCard student={group.primary} role="primary" />
-                  <StudentMiniCard
-                    student={group.duplicate}
-                    role="duplicate"
-                  />
-                </div>
-
-                {canWrite ? (
-                  <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setPendingAction({ kind: "dismiss", group })
-                      }
-                    >
-                      Dismiss flag
-                    </Button>
-                    <Button
-                      onClick={() => setPendingAction({ kind: "merge", group })}
-                    >
-                      <GitMergeIcon />
-                      Merge into primary
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="border-t pt-4 text-sm text-muted-foreground">
-                    Read-only access. Administrators can resolve duplicates.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={group.duplicate.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {canWrite ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setPendingAction({ kind: "dismiss", group })
+                          }
+                        >
+                          Dismiss flag
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            setPendingAction({ kind: "merge", group })
+                          }
+                        >
+                          <GitMergeIcon />
+                          Merge into primary
+                        </Button>
+                      </div>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {!canWrite && (
+            <p className="pt-2 text-sm text-muted-foreground">
+              Read-only access. Administrators can resolve duplicates.
+            </p>
+          )}
         </div>
       ) : groups ? (
         <Card>
